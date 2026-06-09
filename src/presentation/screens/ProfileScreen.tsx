@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { fontSizes, spacing, colors } from '../../shared/constants/theme';
-import { useAuthStore } from '../../shared/stores/authStore';
+import { useAuth } from '../hooks/useAuth';
 
 interface ProfileScreenProps {
   onLogout?: () => void;
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout }) => {
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     Alert.alert(
       'Sair da conta',
       'Tem certeza que deseja sair?',
@@ -18,9 +18,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout }) => {
         { text: 'Cancelar', onPress: () => {} },
         {
           text: 'Sair',
-          onPress: () => {
-            logout();
-            onLogout?.();
+          onPress: async () => {
+            try {
+              await logout();
+              onLogout?.();
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível fazer logout');
+            }
           },
         },
       ]

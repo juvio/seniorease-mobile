@@ -29,8 +29,12 @@ export default function App() {
 
         // Load user settings
         const settingsService = new SettingsService();
-        const settings = await settingsService.getSettings(currentUser.id);
-        setSettings(settings);
+        try {
+          const settings = await settingsService.getSettings(currentUser.id);
+          setSettings(settings);
+        } catch (error) {
+          console.log('Settings not found, will create defaults on next login');
+        }
       }
     } catch (error) {
       console.error('Error initializing app:', error);

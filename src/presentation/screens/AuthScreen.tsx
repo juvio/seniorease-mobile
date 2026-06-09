@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { fontSizes, spacing, colors } from '../../shared/constants/theme';
+import { useAuth } from '../hooks/useAuth';
+import { validateEmail, validatePassword } from '../../shared/utils/validators';
 
 interface AuthScreenProps {
   onLoginSuccess: () => void;
@@ -11,18 +13,42 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { signup, login, loading, error } = useAuth();
 
   const handleAuth = async () => {
     try {
-      setLoading(true);
-      // TODO: Implement auth logic
-      Alert.alert('Sucesso', 'Autenticação será implementada');
+      // Validate inputs
+      if (!email.trim() || !password.trim()) {
+        Alert.alert('Atenção', 'Por favor, preencha todos os campos');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        Alert.alert('Erro', 'Email inválido');
+        return;
+      }
+
+      if (!validatePassword(password)) {
+        Alert.alert('Erro', 'Senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+
+      if (isSignup) {
+        if (!displayName.trim()) {
+          Alert.alert('Atenção', 'Por favor, digite seu nome');
+          return;
+        }
+
+        await signup(email, password, displayName);
+        Alert.alert('Sucesso', 'Conta criada! Bem-vindo ao SeniorEase');
+      } else {
+        await login(email, password);
+        Alert.alert('Sucesso', 'Bem-vindo ao SeniorEase!');
+      }
+
       onLoginSuccess();
-    } catch (error) {
-      Alert.alert('Erro', 'Falha na autenticação');
-    } finally {
-      setLoading(false);
+    } catch (err: any) {
+      Alert.alert('Erro', err.message || 'Falha na autenticação');
     }
   };
 

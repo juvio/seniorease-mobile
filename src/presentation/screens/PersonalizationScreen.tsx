@@ -1,26 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Switch, Alert } from 'react-native';
 import { fontSizes, spacing, colors } from '../../shared/constants/theme';
-import { useSettingsStore } from '../../shared/stores/settingsStore';
+import { useSettings } from '../hooks/useSettings';
 
 interface PersonalizationScreenProps {
   onSave?: () => void;
 }
 
 export const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onSave }) => {
-  const { settings, updateAccessibilitySettings } = useSettingsStore();
+  const { settings, loading, loadSettings, updateSettings, updateAccessibilitySettings } = useSettings();
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
   const fontSizeOptions = ['small', 'medium', 'large', 'extra-large'];
   const contrastOptions = ['normal', 'high', 'maximum'];
   const spacingOptions = ['compact', 'normal', 'spacious', 'extra-spacious'];
 
-  if (!settings) {
+  if (loading || !settings) {
     return (
       <View style={styles.container}>
         <Text>Carregando configurações...</Text>
       </View>
     );
   }
+
+  const handleSaveSettings = async () => {
+    try {
+      Alert.alert('Sucesso', 'Configurações salvas!');
+      onSave?.();
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível salvar as configurações');
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -136,10 +149,7 @@ export const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ on
 
       <TouchableOpacity
         style={styles.saveButton}
-        onPress={() => {
-          Alert.alert('Sucesso', 'Configurações salvas!');
-          onSave?.();
-        }}
+        onPress={handleSaveSettings}
         accessibilityRole="button"
         accessibilityLabel="Save settings button"
       >

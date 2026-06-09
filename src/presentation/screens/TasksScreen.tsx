@@ -1,45 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, FlatList, Alert } from 'react-native';
 import { fontSizes, spacing, colors } from '../../shared/constants/theme';
-import { useTasksStore } from '../../shared/stores/tasksStore';
+import { useTasks } from '../hooks/useTasks';
 import { Task } from '../../domain/entities/Task';
 
 export const TasksScreen: React.FC = () => {
-  const { tasks, addTask, updateTask } = useTasksStore();
+  const { tasks, loading, addTask, updateTask, loadTasks } = useTasks();
   const [showForm, setShowForm] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
 
-  const handleAddTask = () => {
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const handleAddTask = async () => {
     if (!newTaskTitle.trim()) {
       Alert.alert('Aviso', 'Digite um título para a tarefa');
       return;
     }
 
-    const newTask: Task = {
-      id: Date.now().toString(),
-      userId: '', // Would be set from auth store
-      title: newTaskTitle,
-      description: newTaskDescription,
-      steps: [],
-      completed: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    addTask(newTask);
-    setNewTaskTitle('');
-    setNewTaskDescription('');
-    setShowForm(false);
-    Alert.alert('Sucesso', 'Tarefa criada!');
+    try {
+      await addTask(newTaskTitle, newTaskDescription);
+      setNewTaskTitle('');
+      setNewTaskDescription('');
+      setShowForm(false);
+      Alert.alert('Sucesso', 'Tarefa criada!');
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível criar a tarefa');
+    }
   };
 
-  const handleToggleTask = (task: Task) => {
-    updateTask({
-      ...task,
-      completed: !task.completed,
-      completedAt: !task.completed ? new Date() : undefined,
-    });
+  const handleToggleTask = async (task: Task) => {
+    try {
+      await updateTask({
+        ...task,
+        completed: !task.completed,
+        completedAt: !task.completed ? new Date() : undefined,
+      });
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível atualizar a tarefa');
+    }
   };
 
   return (
