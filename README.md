@@ -275,3 +275,4 @@ Para dúvidas ou problemas:
 ---
 
 **Última atualização**: 2026-06-08
+Sempre implemente em Container + View + Hook, com lógica no hook, UI pura na view, screen só orquestrando, TypeScript tipado e padrão visual do projeto
