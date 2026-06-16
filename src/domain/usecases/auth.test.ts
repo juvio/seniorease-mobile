@@ -1,7 +1,7 @@
-import { SignupUseCase } from '../domain/usecases/SignupUseCase';
-import { LoginUseCase } from '../domain/usecases/LoginUseCase';
-import { IAuthRepository } from '../domain/repositories/IAuthRepository';
-import { User } from '../domain/entities/User';
+import { SignupUseCase } from './SignupUseCase';
+import { LoginUseCase } from './LoginUseCase';
+import { IAuthRepository } from '../repositories/IAuthRepository';
+import { User } from '../entities/User';
 
 // Mock repository for testing
 class MockAuthRepository implements IAuthRepository {

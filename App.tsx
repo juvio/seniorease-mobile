@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { RootNavigator } from './presentation/navigation/RootNavigator';
-import { useAuthStore } from './shared/stores/authStore';
-import { useSettingsStore } from './shared/stores/settingsStore';
-import { AuthService } from './application/services/AuthService';
-import { SettingsService } from './application/services/SettingsService';
-import { colors } from './shared/constants/theme';
+import { RootNavigator } from './src/presentation/navigation/RootNavigator';
+import { useAuthStore } from './src/shared/stores/authStore';
+import { useSettingsStore } from './src/shared/stores/settingsStore';
+import { AuthService } from './src/application/services/AuthService';
+import { SettingsService } from './src/application/services/SettingsService';
+import { colors } from './src/shared/constants/theme';
 
 export default function App() {
   const { user, setUser, setLoading: setAuthLoading } = useAuthStore();

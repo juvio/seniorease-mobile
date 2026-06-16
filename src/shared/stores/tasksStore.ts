@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Task } from '../../../domain/entities/Task';
+import { Task } from '../../domain/entities/Task';
 
 interface TasksState {
   tasks: Task[];

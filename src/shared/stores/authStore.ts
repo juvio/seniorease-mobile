@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User } from '../../../domain/entities/User';
+import { User } from '../../domain/entities/User';
 
 interface AuthState {
   user: User | null;

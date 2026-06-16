@@ -1,6 +1,6 @@
-import { IAuthRepository } from '../../repositories/IAuthRepository';
-import { User } from '../../entities/User';
-import { validateEmail, validatePassword } from '../../../shared/utils/validators';
+import { IAuthRepository } from '../repositories/IAuthRepository';
+import { User } from '../entities/User';
+import { validateEmail, validatePassword } from '../../shared/utils/validators';
 
 export class SignupUseCase {
   constructor(private authRepository: IAuthRepository) {}

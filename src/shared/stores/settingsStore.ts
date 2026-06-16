@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Settings } from '../../../domain/entities/Settings';
+import { Settings } from '../../domain/entities/Settings';
 
 interface SettingsState {
   settings: Settings | null;

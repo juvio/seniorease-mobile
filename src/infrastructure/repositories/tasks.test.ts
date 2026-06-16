@@ -1,5 +1,5 @@
-import { FirebaseTasksRepositoryImpl } from '../infrastructure/repositories/FirebaseTasksRepositoryImpl';
-import { Task, TaskStep } from '../domain/entities/Task';
+import { FirebaseTasksRepositoryImpl } from './FirebaseTasksRepositoryImpl';
+import { Task, TaskStep } from '../../domain/entities/Task';
 
 // Mock tests for Tasks
 describe('TasksRepository', () => {

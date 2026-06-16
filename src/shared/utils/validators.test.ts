@@ -1,4 +1,5 @@
-import { validateEmail, validatePassword, validateTaskTitle } from '../../../shared/utils/validators';
+import { describe, expect, it } from '@jest/globals';
+import { validateEmail, validatePassword, validateTaskTitle } from './validators';
 
 describe('Validators', () => {
   describe('validateEmail', () => {
