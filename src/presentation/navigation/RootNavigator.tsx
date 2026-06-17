@@ -2,10 +2,10 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Text as RNText, StyleProp, TextStyle } from 'react-native';
 import { AuthScreen } from '../screens/AuthScreen';
 import { TasksScreen } from '../screens/TasksScreen';
 import { PersonalizationScreen } from '../screens/PersonalizationScreen';
-import { ProfileScreen } from '../screens/ProfileScreen';
 import { colors } from '../../shared/constants/theme';
 
 const Stack = createNativeStackNavigator();
@@ -46,7 +46,7 @@ const AppTabs = () => {
         options={{
           title: 'Tarefas',
           tabBarLabel: 'Tarefas',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>✓</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>✓</Text>,
         }}
       />
       <Tab.Screen
@@ -55,16 +55,7 @@ const AppTabs = () => {
         options={{
           title: 'Personalizar',
           tabBarLabel: 'Personalizar',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>⚙️</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          title: 'Perfil',
-          tabBarLabel: 'Perfil',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>👤</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>⚙️</Text>,
         }}
       />
     </Tab.Navigator>
@@ -76,13 +67,17 @@ export const RootNavigator = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
-          <Stack.Screen name="App" component={AppTabs} />
+          <Stack.Group navigationKey="user">
+            <Stack.Screen name="App" component={AppTabs} />
+          </Stack.Group>
         ) : (
-          <Stack.Screen
-            name="Auth"
-            component={AuthScreen}
-            options={{ animationEnabled: false }}
-          />
+          <Stack.Group navigationKey="guest">
+            <Stack.Screen
+              name="Auth"
+              component={AuthScreen}
+              options={{ animation: 'none' }}
+            />
+          </Stack.Group>
         )}
       </Stack.Navigator>
     </NavigationContainer>
@@ -90,6 +85,6 @@ export const RootNavigator = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 };
 
 // Helper to show icon text
-const Text = ({ children, style }: any) => {
-  return <span style={style}>{children}</span>;
+const Text = ({ children, style }: { children: React.ReactNode; style?: StyleProp<TextStyle> }) => {
+  return <RNText style={style}>{children}</RNText>;
 };

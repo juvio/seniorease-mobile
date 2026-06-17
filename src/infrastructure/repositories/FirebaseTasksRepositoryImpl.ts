@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, getDocs, setDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { ITasksRepository } from '../../domain/repositories/ITasksRepository';
 import { Task } from '../../domain/entities/Task';
@@ -27,30 +27,37 @@ export class FirebaseTasksRepositoryImpl implements ITasksRepository {
   }
 
   async createTask(task: Task): Promise<void> {
-    const tasksCollection = collection(db, 'users', task.userId, 'tasks');
-    await addDoc(tasksCollection, {
+    const taskData: any = {
       title: task.title,
       description: task.description,
       steps: task.steps,
       completed: task.completed,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
-      dueDate: task.dueDate,
-      reminderTime: task.reminderTime,
-    });
+    };
+
+    // Only include optional fields if they have values
+    if (task.dueDate !== undefined) taskData.dueDate = task.dueDate;
+    if (task.reminderTime !== undefined) taskData.reminderTime = task.reminderTime;
+
+    await setDoc(doc(db, 'users', task.userId, 'tasks', task.id), taskData);
   }
 
   async updateTask(task: Task): Promise<void> {
-    await updateDoc(doc(db, 'users', task.userId, 'tasks', task.id), {
+    const taskData: any = {
       title: task.title,
       description: task.description,
       steps: task.steps,
       completed: task.completed,
       updatedAt: task.updatedAt,
-      completedAt: task.completedAt,
-      dueDate: task.dueDate,
-      reminderTime: task.reminderTime,
-    });
+    };
+
+    // Only include optional fields if they have values
+    if (task.dueDate !== undefined) taskData.dueDate = task.dueDate;
+    if (task.reminderTime !== undefined) taskData.reminderTime = task.reminderTime;
+    if (task.completedAt !== undefined) taskData.completedAt = task.completedAt;
+
+    await updateDoc(doc(db, 'users', task.userId, 'tasks', task.id), taskData);
   }
 
   async deleteTask(taskId: string): Promise<void> {

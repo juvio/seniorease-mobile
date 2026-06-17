@@ -4,17 +4,20 @@ import { validateEmail, validatePassword } from '../../shared/utils/validators';
 import { useAuth } from './useAuth';
 
 interface AuthScreenHookParams {
-  onLoginSuccess: () => void;
+  onLoginSuccess?: () => void;
 }
 
-export const useAuthScreen = ({ onLoginSuccess }: AuthScreenHookParams) => {
+export const useAuthScreen = ({ onLoginSuccess }: AuthScreenHookParams = {}) => {
   const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const { signup, login, loading, error } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signup, login, error } = useAuth();
 
   const handleAuth = useCallback(async () => {
+    setIsSubmitting(true);
+
     try {
       if (!email.trim() || !password.trim()) {
         Alert.alert('Atencao', 'Por favor, preencha todos os campos');
@@ -44,9 +47,11 @@ export const useAuthScreen = ({ onLoginSuccess }: AuthScreenHookParams) => {
         Alert.alert('Sucesso', 'Bem-vindo ao SeniorEase!');
       }
 
-      onLoginSuccess();
+      onLoginSuccess?.();
     } catch (err: any) {
       Alert.alert('Erro', err?.message || 'Falha na autenticacao');
+    } finally {
+      setIsSubmitting(false);
     }
   }, [displayName, email, isSignup, login, onLoginSuccess, password, signup]);
 
@@ -55,7 +60,7 @@ export const useAuthScreen = ({ onLoginSuccess }: AuthScreenHookParams) => {
     email,
     password,
     displayName,
-    isLoading: loading,
+    isLoading: isSubmitting,
     authError: error,
     setIsSignup,
     setEmail,

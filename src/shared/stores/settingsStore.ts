@@ -5,27 +5,11 @@ interface SettingsState {
   settings: Settings | null;
   loading: boolean;
   error: string | null;
-  setSettings: (settings: Settings) => void;
+  setSettings: (settings: Settings | null) => void;
   updateAccessibilitySettings: (updates: Partial<Settings['accessibility']>) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 }
-
-const defaultSettings: Omit<Settings, 'userId' | 'createdAt' | 'updatedAt'> = {
-  accessibility: {
-    fontSize: 'medium',
-    contrast: 'normal',
-    spacing: 'normal',
-    interfaceMode: 'basic',
-    reinforcedFeedback: true,
-    confirmCriticalActions: true,
-  },
-  notifications: {
-    enableReminders: true,
-    reminderTime: '09:00',
-    enableTaskCompletion: true,
-  },
-};
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   settings: null,

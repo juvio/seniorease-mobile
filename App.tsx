@@ -8,8 +8,8 @@ import { SettingsService } from './src/application/services/SettingsService';
 import { colors } from './src/shared/constants/theme';
 
 export default function App() {
-  const { user, setUser, setLoading: setAuthLoading } = useAuthStore();
-  const { setSettings, setLoading: setSettingsLoading } = useSettingsStore();
+  const { user, setUser } = useAuthStore();
+  const { setSettings } = useSettingsStore();
   const [appLoading, setAppLoading] = useState(true);
 
   useEffect(() => {
@@ -18,9 +18,6 @@ export default function App() {
 
   const initializeApp = async () => {
     try {
-      setAuthLoading(true);
-      setSettingsLoading(true);
-
       const authService = new AuthService();
       const currentUser = await authService.getCurrentUser();
 
@@ -32,15 +29,13 @@ export default function App() {
         try {
           const settings = await settingsService.getSettings(currentUser.id);
           setSettings(settings);
-        } catch (error) {
-          console.log('Settings not found, will create defaults on next login');
+        } catch {
+          // Defaults can be created after login if no settings were found.
         }
       }
     } catch (error) {
       console.error('Error initializing app:', error);
     } finally {
-      setAuthLoading(false);
-      setSettingsLoading(false);
       setAppLoading(false);
     }
   };

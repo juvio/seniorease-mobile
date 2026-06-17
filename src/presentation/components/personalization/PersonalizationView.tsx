@@ -20,6 +20,10 @@ type Option<T> = {
 
 interface PersonalizationViewProps {
   isLoading: boolean;
+  displayName: string;
+  email: string;
+  initial: string;
+  memberSince: string;
   accessibility: AccessibilitySettings | undefined;
   fontSizeOptions: Option<AccessibilitySettings['fontSize']>[];
   spacingOptions: Option<AccessibilitySettings['spacing']>[];
@@ -35,6 +39,10 @@ interface PersonalizationViewProps {
 
 export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
   isLoading,
+  displayName,
+  email,
+  initial,
+  memberSince,
   accessibility,
   fontSizeOptions,
   spacingOptions,
@@ -63,6 +71,17 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
       showsVerticalScrollIndicator={false}
     >
       <AppTopBar actionLabel="Menu" />
+
+      <View style={styles.profileCard}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initial}</Text>
+        </View>
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>{displayName}</Text>
+          <Text style={styles.profileEmail}>{email}</Text>
+          <Text style={styles.profileMemberSince}>Membro desde: {memberSince}</Text>
+        </View>
+      </View>
 
       <Text style={styles.title}>Deixe o SeniorEase confortavel para voce</Text>
       <Text style={styles.subtitle}>
@@ -294,5 +313,47 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontSize: fontSizes.medium,
     fontWeight: 'bold',
+  },
+  profileCard: {
+    backgroundColor: '#ECEDEF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#D8DADF',
+    padding: spacing.spacious,
+    marginBottom: spacing.spacious,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#4A67F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.normal,
+  },
+  avatarText: {
+    color: colors.background,
+    fontSize: fontSizes.large + 4,
+    fontWeight: '800',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: fontSizes.medium,
+    color: '#2B2B2E',
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  profileEmail: {
+    fontSize: fontSizes.small + 1,
+    color: '#5D5D66',
+    marginBottom: 2,
+  },
+  profileMemberSince: {
+    fontSize: fontSizes.small,
+    color: '#6A6A71',
   },
 });

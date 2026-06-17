@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   TextInput,
@@ -13,6 +12,7 @@ import { Task } from '../../../domain/entities/Task';
 import { TaskActivityCard } from './TaskActivityCard';
 import { AppTopBar } from '../shared/AppTopBar';
 import { screenScaffoldStyles } from '../shared/screenScaffoldStyles';
+import { KeyboardAwareFormContainer } from '../shared/KeyboardAwareFormContainer';
 
 interface TaskActivityItem {
   id: string;
@@ -59,10 +59,9 @@ export const TasksView: React.FC<TasksViewProps> = ({
   }
 
   return (
-    <ScrollView
-      style={screenScaffoldStyles.container}
+    <KeyboardAwareFormContainer
       contentContainerStyle={screenScaffoldStyles.contentContainer}
-      showsVerticalScrollIndicator={false}
+      scrollEnabledWithKeyboardOnly={false}
     >
       <AppTopBar actionLabel="Menu" />
 
@@ -150,7 +149,7 @@ export const TasksView: React.FC<TasksViewProps> = ({
           </View>
         </View>
       )}
-    </ScrollView>
+    </KeyboardAwareFormContainer>
   );
 };
 

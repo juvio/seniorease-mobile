@@ -36,7 +36,9 @@ const getReminderText = (task: Task) => {
   return 'Lembrete: hoje sem horário definido';
 };
 
-const getStatus = (task: Task): Pick<TaskActivityItem, 'statusLabel' | 'statusTone' | 'actionLabel'> => {
+const getStatus = (
+  task: Task,
+): Pick<TaskActivityItem, 'statusLabel' | 'statusTone' | 'actionLabel'> => {
   if (task.completed) {
     return {
       statusLabel: 'Concluída',
@@ -96,7 +98,11 @@ export const useTasksScreen = () => {
       setShowForm(false);
       Alert.alert('Sucesso', 'Atividade criada!');
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível criar a atividade');
+      Alert.alert(
+        'Erro',
+        'Não foi possível criar a atividade: ' +
+          (error instanceof Error ? error.message : 'Erro desconhecido'),
+      );
     }
   }, [addTask, newTaskDescription, newTaskTitle]);
 
@@ -115,10 +121,11 @@ export const useTasksScreen = () => {
         });
         Alert.alert('Muito bem!', 'Atividade marcada como concluída.');
       } catch (error) {
+        console.log('Erro ao atualizar tarefa:', error);
         Alert.alert('Erro', 'Não foi possível atualizar a atividade');
       }
     },
-    [updateTask]
+    [updateTask],
   );
 
   const activityItems = useMemo<TaskActivityItem[]>(() => {

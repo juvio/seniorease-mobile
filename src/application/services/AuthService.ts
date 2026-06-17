@@ -23,7 +23,7 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    return this.authRepository.logout();
+    await this.authRepository.logout();
   }
 
   async getCurrentUser(): Promise<User | null> {

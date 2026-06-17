@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
 import { AppTopBar } from '../shared/AppTopBar';
-import { screenScaffoldStyles } from '../shared/screenScaffoldStyles';
+import { KeyboardAwareFormContainer } from '../shared/KeyboardAwareFormContainer';
 
 interface AuthViewProps {
   isSignup: boolean;
@@ -41,10 +39,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
   onSubmit,
 }) => {
   return (
-    <KeyboardAvoidingView
-      style={screenScaffoldStyles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAwareFormContainer contentContainerStyle={styles.scrollContent}>
       <View style={styles.content}>
         <AppTopBar actionLabel="Entrar" />
 
@@ -118,11 +113,14 @@ export const AuthView: React.FC<AuthViewProps> = ({
           </TouchableOpacity>
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareFormContainer>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
     justifyContent: 'center',

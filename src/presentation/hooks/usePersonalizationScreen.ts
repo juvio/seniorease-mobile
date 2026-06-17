@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { AccessibilitySettings } from '../../domain/entities/Settings';
 import { useSettings } from './useSettings';
+import { useAuth } from './useAuth';
 
 interface PersonalizationScreenHookParams {
   onSave?: () => void;
@@ -34,6 +35,7 @@ const spacingOptions: Option<AccessibilitySettings['spacing']>[] = [
 
 export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookParams) => {
   const { settings, loading, loadSettings, updateSettings, updateAccessibilitySettings } = useSettings();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadSettings();
@@ -74,6 +76,12 @@ export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookPa
 
   return {
     isLoading: loading || !settings,
+    displayName: user?.displayName || '',
+    email: user?.email || '',
+    initial: user?.displayName?.[0]?.toUpperCase() || 'U',
+    memberSince: user?.createdAt
+      ? (user.createdAt instanceof Date ? user.createdAt : new Date(user.createdAt)).toLocaleDateString('pt-BR')
+      : '-',
     accessibility: settings?.accessibility,
     fontSizeOptions,
     contrastOptions,
