@@ -5,6 +5,7 @@ import { useAuthStore } from '../../shared/stores/authStore';
 import { useSettingsStore } from '../../shared/stores/settingsStore';
 
 const AUTH_REQUEST_TIMEOUT_MS = 15000;
+const GENERIC_AUTH_FAILURE_MESSAGE = 'Nao foi possivel autenticar. Verifique suas credenciais e tente novamente.';
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> => {
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -89,9 +90,24 @@ export const useAuth = () => {
           .catch(() => undefined);
         return user;
       } catch (error: any) {
-        const errorMessage = error?.message || 'Erro ao fazer login';
+        const errorCode = error?.code;
+        const isInvalidCredentialsError =
+          errorCode === 'auth/wrong-password' ||
+          errorCode === 'auth/user-not-found' ||
+          errorCode === 'auth/invalid-credential';
+
+        const errorMessage = isInvalidCredentialsError
+          ? GENERIC_AUTH_FAILURE_MESSAGE
+          : error?.message || 'Erro ao fazer login';
+
         authStore.setError(errorMessage);
-        throw new Error(errorMessage);
+
+        const normalizedError = new Error(errorMessage);
+        (normalizedError as Error & { code?: string }).code = isInvalidCredentialsError
+          ? 'AUTH_INVALID_CREDENTIALS'
+          : errorCode;
+
+        throw normalizedError;
       } finally {
         authStore.setLoading(false);
       }

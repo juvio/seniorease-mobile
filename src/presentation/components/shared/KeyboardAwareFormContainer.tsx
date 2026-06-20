@@ -9,6 +9,7 @@ import {
   ViewStyle,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { screenScaffoldStyles } from './screenScaffoldStyles';
 
 interface KeyboardAwareFormContainerProps {
@@ -26,6 +27,7 @@ export const KeyboardAwareFormContainer: React.FC<KeyboardAwareFormContainerProp
   keyboardVerticalOffset = 0,
   scrollEnabledWithKeyboardOnly = true,
 }) => {
+  const insets = useSafeAreaInsets();
   const [keyboardVisible, setKeyboardVisible] = React.useState(false);
 
   React.useEffect(() => {
@@ -45,29 +47,39 @@ export const KeyboardAwareFormContainer: React.FC<KeyboardAwareFormContainerProp
   }, []);
 
   const scrollEnabled = scrollEnabledWithKeyboardOnly ? keyboardVisible : true;
+  const effectiveKeyboardOffset = keyboardVerticalOffset + insets.top;
 
   return (
-    <KeyboardAvoidingView
-      style={[screenScaffoldStyles.container, containerStyle]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={keyboardVerticalOffset}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.defaultScrollContent, contentContainerStyle]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={scrollEnabled}
+    <SafeAreaView style={[screenScaffoldStyles.container, containerStyle]} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={effectiveKeyboardOffset}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.innerContent}>{children}</View>
-        </TouchableWithoutFeedback>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <ScrollView
+          contentContainerStyle={[
+            styles.defaultScrollContent,
+            { paddingBottom: insets.bottom },
+            contentContainerStyle,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={scrollEnabled}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.innerContent}>{children}</View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = {
+  keyboardContainer: {
+    flex: 1,
+  } as ViewStyle,
   defaultScrollContent: {
     flexGrow: 1,
   } as ViewStyle,

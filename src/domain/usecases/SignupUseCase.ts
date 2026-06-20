@@ -1,6 +1,6 @@
 import { IAuthRepository } from '../repositories/IAuthRepository';
 import { User } from '../entities/User';
-import { validateEmail, validatePassword } from '../../shared/utils/validators';
+import { PASSWORD_REQUIREMENTS_TEXT, validateEmail, validatePassword } from '../../shared/utils/validators';
 
 export class SignupUseCase {
   constructor(private authRepository: IAuthRepository) {}
@@ -11,11 +11,11 @@ export class SignupUseCase {
     }
 
     if (!validatePassword(password)) {
-      throw new Error('Senha deve ter pelo menos 6 caracteres');
+      throw new Error(PASSWORD_REQUIREMENTS_TEXT);
     }
 
-    if (displayName.trim().length === 0) {
-      throw new Error('Nome é obrigatório');
+    if (displayName.trim().length < 5) {
+      throw new Error('Nome completo deve ter no minimo 5 caracteres');
     }
 
     return this.authRepository.signup(email, password, displayName);

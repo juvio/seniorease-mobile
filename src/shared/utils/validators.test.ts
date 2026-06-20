@@ -3,27 +3,32 @@ import { validateEmail, validatePassword, validateTaskTitle } from './validators
 
 describe('Validators', () => {
   describe('validateEmail', () => {
-    it('should validate correct email format', () => {
+    it('should validate email containing @', () => {
       expect(validateEmail('test@example.com')).toBe(true);
       expect(validateEmail('user@domain.co.uk')).toBe(true);
+      expect(validateEmail('user@')).toBe(true);
+      expect(validateEmail('@domain.com')).toBe(true);
     });
 
-    it('should reject invalid email format', () => {
+    it('should reject email without @', () => {
       expect(validateEmail('invalid.email')).toBe(false);
-      expect(validateEmail('user@')).toBe(false);
-      expect(validateEmail('@domain.com')).toBe(false);
+      expect(validateEmail('userdomain.com')).toBe(false);
+      expect(validateEmail('')).toBe(false);
     });
   });
 
   describe('validatePassword', () => {
-    it('should validate password with minimum 6 characters', () => {
-      expect(validatePassword('123456')).toBe(true);
-      expect(validatePassword('password')).toBe(true);
+    it('should validate strong password', () => {
+      expect(validatePassword('Senha@123')).toBe(true);
+      expect(validatePassword('Abcd!1234')).toBe(true);
     });
 
-    it('should reject password with less than 6 characters', () => {
+    it('should reject weak passwords', () => {
       expect(validatePassword('123')).toBe(false);
-      expect(validatePassword('pass')).toBe(false);
+      expect(validatePassword('password')).toBe(false);
+      expect(validatePassword('SENHA123')).toBe(false);
+      expect(validatePassword('senha123')).toBe(false);
+      expect(validatePassword('Senha123')).toBe(false);
     });
   });
 

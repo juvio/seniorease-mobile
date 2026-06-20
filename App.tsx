@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/presentation/navigation/RootNavigator';
 import { useAuthStore } from './src/shared/stores/authStore';
 import { useSettingsStore } from './src/shared/stores/settingsStore';
@@ -48,5 +49,9 @@ export default function App() {
     );
   }
 
-  return <RootNavigator isLoggedIn={!!user} />;
+  return (
+    <SafeAreaProvider>
+      <RootNavigator isLoggedIn={!!user} />
+    </SafeAreaProvider>
+  );
 }

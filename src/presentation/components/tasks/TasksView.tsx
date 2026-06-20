@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
 import { Task } from '../../../domain/entities/Task';
 import { TaskActivityCard } from './TaskActivityCard';
@@ -51,10 +52,12 @@ export const TasksView: React.FC<TasksViewProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <View style={screenScaffoldStyles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Carregando atividades...</Text>
-      </View>
+      <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
+        <View style={screenScaffoldStyles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Carregando atividades...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 

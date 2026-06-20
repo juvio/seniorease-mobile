@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
 import { ProfileActionCard } from './ProfileActionCard';
 import { AppTopBar } from '../shared/AppTopBar';
@@ -33,20 +34,23 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <View style={screenScaffoldStyles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Carregando perfil...</Text>
-      </View>
+      <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
+        <View style={screenScaffoldStyles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Carregando perfil...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
-      style={screenScaffoldStyles.container}
-      contentContainerStyle={screenScaffoldStyles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <AppTopBar actionLabel="Menu" />
+    <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
+      <ScrollView
+        style={screenScaffoldStyles.container}
+        contentContainerStyle={screenScaffoldStyles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <AppTopBar actionLabel="Menu" />
 
       <Text style={styles.title}>Meu perfil</Text>
       <Text style={styles.subtitle}>Gerencie sua conta, preferencias e seguranca.</Text>
@@ -63,19 +67,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </View>
       </View>
 
-      <View style={styles.actionsContainer}>
-        {actions.map((action) => (
-          <ProfileActionCard
-            key={action.id}
-            title={action.title}
-            subtitle={action.subtitle}
-            actionLabel={action.actionLabel}
-            tone={action.tone}
-            onPress={action.onPress}
-          />
-        ))}
-      </View>
-    </ScrollView>
+        <View style={styles.actionsContainer}>
+          {actions.map((action) => (
+            <ProfileActionCard
+              key={action.id}
+              title={action.title}
+              subtitle={action.subtitle}
+              actionLabel={action.actionLabel}
+              tone={action.tone}
+              onPress={action.onPress}
+            />
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

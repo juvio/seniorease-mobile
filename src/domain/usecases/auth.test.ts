@@ -7,7 +7,9 @@ import { User } from '../entities/User';
 class MockAuthRepository implements IAuthRepository {
   private users: Map<string, User> = new Map();
 
-  async signup(email: string, password: string, displayName: string): Promise<User> {
+  async signup(email: string, _password: string, displayName: string): Promise<User> {
+    void _password;
+
     const user: User = {
       id: Date.now().toString(),
       email,
@@ -19,7 +21,9 @@ class MockAuthRepository implements IAuthRepository {
     return user;
   }
 
-  async login(email: string, password: string): Promise<User> {
+  async login(email: string, _password: string): Promise<User> {
+    void _password;
+
     const user = this.users.get(email);
     if (!user) {
       throw new Error('Usuário não encontrado');
@@ -35,7 +39,9 @@ class MockAuthRepository implements IAuthRepository {
     return null;
   }
 
-  async updateProfile(displayName: string): Promise<void> {
+  async updateProfile(_displayName: string): Promise<void> {
+    void _displayName;
+
     // Mock implementation
   }
 }
@@ -53,7 +59,7 @@ describe('AuthService', () => {
 
       const user = await useCase.execute(
         'test@example.com',
-        'password123',
+        'Password@123',
         'Test User'
       );
 
@@ -66,7 +72,7 @@ describe('AuthService', () => {
       const useCase = new SignupUseCase(mockRepository);
 
       try {
-        await useCase.execute('invalid-email', 'password123', 'Test User');
+        await useCase.execute('invalid-email', 'Password@123', 'Test User');
         fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.message).toContain('Email inválido');
@@ -80,18 +86,18 @@ describe('AuthService', () => {
         await useCase.execute('test@example.com', 'pass', 'Test User');
         fail('Should have thrown an error');
       } catch (error: any) {
-        expect(error.message).toContain('6 caracteres');
+        expect(error.message).toContain('8 caracteres');
       }
     });
 
-    it('should reject empty display name', async () => {
+    it('should reject display name shorter than 5 characters', async () => {
       const useCase = new SignupUseCase(mockRepository);
 
       try {
-        await useCase.execute('test@example.com', 'password123', '');
+        await useCase.execute('test@example.com', 'Password@123', 'Ana');
         fail('Should have thrown an error');
       } catch (error: any) {
-        expect(error.message).toContain('Nome é obrigatório');
+        expect(error.message).toContain('5 caracteres');
       }
     });
   });
@@ -99,10 +105,10 @@ describe('AuthService', () => {
   describe('LoginUseCase', () => {
     it('should login with valid credentials', async () => {
       const mockRepo = new MockAuthRepository();
-      await mockRepo.signup('test@example.com', 'password123', 'Test User');
+      await mockRepo.signup('test@example.com', 'Password@123', 'Test User');
 
       const useCase = new LoginUseCase(mockRepo);
-      const user = await useCase.execute('test@example.com', 'password123');
+      const user = await useCase.execute('test@example.com', 'Password@123');
 
       expect(user).toBeDefined();
       expect(user.email).toBe('test@example.com');
@@ -112,7 +118,7 @@ describe('AuthService', () => {
       const useCase = new LoginUseCase(mockRepository);
 
       try {
-        await useCase.execute('invalid-email', 'password123');
+        await useCase.execute('invalid-email', 'Password@123');
         fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.message).toContain('Email inválido');

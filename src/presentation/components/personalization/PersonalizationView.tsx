@@ -8,6 +8,7 @@ import {
   Switch,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
 import { AccessibilitySettings } from '../../../domain/entities/Settings';
 import { AppTopBar } from '../shared/AppTopBar';
@@ -57,20 +58,23 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
 }) => {
   if (isLoading || !accessibility) {
     return (
-      <View style={screenScaffoldStyles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Carregando configuracoes...</Text>
-      </View>
+      <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
+        <View style={screenScaffoldStyles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Carregando configuracoes...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
-      style={screenScaffoldStyles.container}
-      contentContainerStyle={screenScaffoldStyles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <AppTopBar actionLabel="Menu" />
+    <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
+      <ScrollView
+        style={screenScaffoldStyles.container}
+        contentContainerStyle={screenScaffoldStyles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <AppTopBar actionLabel="Menu" />
 
       <View style={styles.profileCard}>
         <View style={styles.avatar}>
@@ -212,15 +216,16 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.saveButton}
-        onPress={onSave}
-        accessibilityRole="button"
-        accessibilityLabel="Salvar configuracoes"
-      >
-        <Text style={styles.saveButtonText}>Salvar alteracoes</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={onSave}
+          accessibilityRole="button"
+          accessibilityLabel="Salvar configuracoes"
+        >
+          <Text style={styles.saveButtonText}>Salvar alteracoes</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

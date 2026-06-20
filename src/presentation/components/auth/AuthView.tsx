@@ -8,20 +8,33 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
+import { PASSWORD_REQUIREMENTS_TEXT } from '../../../shared/utils/validators';
 import { AppTopBar } from '../shared/AppTopBar';
+import { FeedbackToast } from '../shared/FeedbackToast';
 import { KeyboardAwareFormContainer } from '../shared/KeyboardAwareFormContainer';
+
+type AuthToastType = 'success' | 'error' | 'warning';
+
+interface AuthToastState {
+  type: AuthToastType;
+  message: string;
+}
 
 interface AuthViewProps {
   isSignup: boolean;
   email: string;
   password: string;
   displayName: string;
+  displayNameFeedback: string | null;
+  emailFeedback: string | null;
+  passwordFeedback: string | null;
+  toastFeedback: AuthToastState | null;
   isLoading: boolean;
-  authError: string | null;
-  setIsSignup: React.Dispatch<React.SetStateAction<boolean>>;
-  setEmail: React.Dispatch<React.SetStateAction<string>>;
-  setPassword: React.Dispatch<React.SetStateAction<string>>;
-  setDisplayName: React.Dispatch<React.SetStateAction<string>>;
+  setIsSignup: () => void;
+  setEmail: (value: string) => void;
+  setPassword: (value: string) => void;
+  setDisplayName: (value: string) => void;
+  dismissToast: () => void;
   onSubmit: () => void;
 }
 
@@ -30,17 +43,31 @@ export const AuthView: React.FC<AuthViewProps> = ({
   email,
   password,
   displayName,
+  displayNameFeedback,
+  emailFeedback,
+  passwordFeedback,
+  toastFeedback,
   isLoading,
-  authError,
   setIsSignup,
   setEmail,
   setPassword,
   setDisplayName,
+  dismissToast,
   onSubmit,
 }) => {
+  const [showPassword, setShowPassword] = React.useState(false);
+
   return (
     <KeyboardAwareFormContainer contentContainerStyle={styles.scrollContent}>
       <View style={styles.content}>
+        <FeedbackToast
+          visible={Boolean(toastFeedback)}
+          type={toastFeedback?.type || 'error'}
+          message={toastFeedback?.message || ''}
+          onClose={dismissToast}
+          autoHideMs={toastFeedback?.type === 'success' ? 3000 : undefined}
+        />
+
         <AppTopBar actionLabel="Entrar" />
 
         <Text style={styles.title}>{isSignup ? 'Criar sua conta' : 'Bem-vindo de volta'}</Text>
@@ -52,19 +79,23 @@ export const AuthView: React.FC<AuthViewProps> = ({
 
         <View style={styles.formCard}>
           {isSignup && (
-            <TextInput
-              style={styles.input}
-              placeholder="Nome completo"
-              placeholderTextColor={colors.textSecondary}
-              value={displayName}
-              onChangeText={setDisplayName}
-              editable={!isLoading}
-              accessibilityLabel="Campo nome completo"
-            />
+            <>
+              <TextInput
+                style={[styles.input, displayNameFeedback ? styles.inputError : null]}
+                placeholder="Nome completo"
+                placeholderTextColor={colors.textSecondary}
+                value={displayName}
+                onChangeText={setDisplayName}
+                editable={!isLoading}
+                accessibilityLabel="Campo nome completo"
+              />
+
+              {displayNameFeedback ? <Text style={styles.errorText}>{displayNameFeedback}</Text> : null}
+            </>
           )}
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, emailFeedback ? styles.inputError : null]}
             placeholder="Email"
             placeholderTextColor={colors.textSecondary}
             value={email}
@@ -75,18 +106,34 @@ export const AuthView: React.FC<AuthViewProps> = ({
             accessibilityLabel="Campo email"
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor={colors.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            editable={!isLoading}
-            secureTextEntry
-            accessibilityLabel="Campo senha"
-          />
+          {emailFeedback ? <Text style={styles.errorText}>{emailFeedback}</Text> : null}
 
-          {authError ? <Text style={styles.errorText}>{authError}</Text> : null}
+          <View style={styles.passwordInputWrapper}>
+            <TextInput
+              style={[styles.input, styles.passwordInput, passwordFeedback ? styles.inputError : null]}
+              placeholder="Senha"
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChangeText={setPassword}
+              editable={!isLoading}
+              secureTextEntry={!showPassword}
+              accessibilityLabel="Campo senha"
+            />
+
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+              disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              style={styles.passwordToggleButton}
+            >
+              <Text style={styles.passwordToggleText}>{showPassword ? 'Ocultar' : 'Mostrar'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {isSignup ? <Text style={styles.passwordHintText}>{PASSWORD_REQUIREMENTS_TEXT}</Text> : null}
+
+          {passwordFeedback ? <Text style={styles.errorText}>{passwordFeedback}</Text> : null}
 
           <TouchableOpacity
             style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
@@ -103,7 +150,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => setIsSignup((prev) => !prev)}
+            onPress={setIsSignup}
             accessibilityRole="button"
             accessibilityLabel="Alternar entre login e cadastro"
           >
@@ -156,10 +203,38 @@ const styles = StyleSheet.create({
     marginBottom: spacing.normal,
     color: colors.text,
   },
+  passwordInputWrapper: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 88,
+  },
+  passwordToggleButton: {
+    position: 'absolute',
+    right: spacing.normal,
+    top: 0,
+    bottom: spacing.normal,
+    justifyContent: 'center',
+  },
+  passwordToggleText: {
+    fontSize: fontSizes.small + 1,
+    fontWeight: '700',
+    color: '#3F4FA8',
+  },
+  passwordHintText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.small,
+    marginTop: -2,
+    marginBottom: spacing.normal,
+    lineHeight: 18,
+  },
   errorText: {
     color: colors.error,
     fontSize: fontSizes.small + 1,
     marginBottom: spacing.normal,
+  },
+  inputError: {
+    borderColor: colors.error,
   },
   submitButton: {
     minHeight: 48,
