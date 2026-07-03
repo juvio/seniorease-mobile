@@ -16,35 +16,32 @@ import { FirebaseStorage, getStorage } from 'firebase/storage';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyA-Qo06AnGXQtJqquGMIDF8sIYc7kSDryE',
-  authDomain: 'seniorease-mobile.firebaseapp.com',
-  projectId: 'seniorease-mobile',
-  storageBucket: 'seniorease-mobile.firebasestorage.app',
-  messagingSenderId: '331452744246',
-  appId: '1:331452744246:web:d24456cb1dfe9ffd4f4e97',
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? 'AIzaSyA-Qo06AnGXQtJqquGMIDF8sIYc7kSDryE',
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ?? 'seniorease-mobile.firebaseapp.com',
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? 'seniorease-mobile',
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ?? 'seniorease-mobile.firebasestorage.app',
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? '331452744246',
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID ?? '1:331452744246:web:d24456cb1dfe9ffd4f4e97',
 };
 
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
-let storage: FirebaseStorage;
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
+let auth: Auth;
+
+try {
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage),
   });
-
-  // React Native / Expo often needs long polling for Firestore stability.
-  db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-  });
-} else {
-  app = getApp();
+} catch {
   auth = getAuth(app);
-  db = getFirestore(app);
 }
 
-storage = getStorage(app);
+const db: Firestore = getApps().length
+  ? getFirestore(app)
+  : initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+    });
+
+const storage: FirebaseStorage = getStorage(app);
 
 export { app, auth, db, storage };
