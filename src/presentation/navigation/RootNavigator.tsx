@@ -3,10 +3,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text as RNText, StyleProp, TextStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthScreen } from '../screens/AuthScreen';
 import { TasksScreen } from '../screens/TasksScreen';
 import { PersonalizationScreen } from '../screens/PersonalizationScreen';
-import { colors } from '../../shared/constants/theme';
+import { useAccessibilityTheme } from '../hooks/useAccessibilityTheme';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -24,19 +25,27 @@ const HomeStack = () => {
 };
 
 const AppTabs = () => {
+  const { ui, scaleFont, scaleSpacing } = useAccessibilityTheme();
+  const insets = useSafeAreaInsets();
+  const tabBarBottomPadding = Math.max(insets.bottom, scaleSpacing(8));
+
   return (
     <Tab.Navigator
+      sceneContainerStyle={{ backgroundColor: ui.screenBackground }}
       screenOptions={{
-        headerShown: true,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          marginBottom: 4,
-        },
+        headerShown: false,
         tabBarStyle: {
-          height: 60,
-          paddingBottom: 8,
+          height: scaleSpacing(56) + tabBarBottomPadding,
+          paddingBottom: tabBarBottomPadding,
+          paddingTop: scaleSpacing(4),
+          backgroundColor: ui.screenBackground,
+          borderTopColor: ui.cardBorder,
+        },
+        tabBarActiveTintColor: ui.chipSelectedBackground,
+        tabBarInactiveTintColor: ui.textSecondary,
+        tabBarLabelStyle: {
+          fontSize: scaleFont(12),
+          marginBottom: scaleSpacing(4),
         },
       }}
     >
@@ -44,18 +53,18 @@ const AppTabs = () => {
         name="Home"
         component={HomeStack}
         options={{
-          title: 'Tarefas',
-          tabBarLabel: 'Tarefas',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>✓</Text>,
+          title: 'Home',
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: scaleFont(24), color }}>✓</Text>,
         }}
       />
       <Tab.Screen
         name="Personalization"
         component={PersonalizationScreen}
         options={{
-          title: 'Personalizar',
-          tabBarLabel: 'Personalizar',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>⚙️</Text>,
+          title: 'Configurações',
+          tabBarLabel: 'Configurações',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: scaleFont(24), color }}>⚙️</Text>,
         }}
       />
     </Tab.Navigator>

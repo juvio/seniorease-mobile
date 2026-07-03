@@ -1,19 +1,30 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
+import { useAccessibilityTheme } from '../../hooks/useAccessibilityTheme';
 
-interface AppTopBarProps {
-  actionLabel?: string;
-}
+export const AppTopBar: React.FC = () => {
+  const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
 
-export const AppTopBar: React.FC<AppTopBarProps> = ({ actionLabel = 'Menu' }) => {
   return (
-    <View style={styles.topBar}>
-      <View style={styles.brandChip}>
-        <Text style={styles.brandText}>SeniorEase</Text>
-      </View>
-      <View style={styles.menuChip}>
-        <Text style={styles.menuText}>{actionLabel}</Text>
+    <View style={[styles.topBar, { marginBottom: scaleSpacing(spacing.compact + 2) }]}>
+      <View
+        style={[
+          styles.brandContainer,
+          {
+            backgroundColor: ui.topBarBrandBackground,
+            borderColor: ui.cardBorder,
+            paddingHorizontal: scaleSpacing(spacing.normal + 2),
+            paddingVertical: scaleSpacing(spacing.normal),
+          },
+        ]}
+      >
+        <Text style={[styles.brandText, { fontSize: scaleFont(fontSizes.large + 1) }]}>SeniorEase</Text>
+
+        <View style={[styles.accentCluster, { marginLeft: scaleSpacing(spacing.normal) }]}>
+          <View style={[styles.accentLarge, { backgroundColor: ui.topBarActionBackground }]} />
+          <View style={[styles.accentSmall, { backgroundColor: ui.chipSelectedBackground }]} />
+        </View>
       </View>
     </View>
   );
@@ -21,31 +32,48 @@ export const AppTopBar: React.FC<AppTopBarProps> = ({ actionLabel = 'Menu' }) =>
 
 const styles = StyleSheet.create({
   topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.spacious,
+    width: '100%',
   },
-  brandChip: {
-    backgroundColor: '#181A22',
-    borderRadius: 12,
-    paddingHorizontal: spacing.spacious,
-    paddingVertical: spacing.normal,
+  brandContainer: {
+    width: '100%',
+    borderRadius: 20,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000000',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   brandText: {
     color: colors.background,
-    fontSize: fontSizes.medium,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
-  menuChip: {
-    backgroundColor: '#FFD93D',
+  accentCluster: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 46,
+    height: 34,
     borderRadius: 999,
-    paddingHorizontal: spacing.spacious,
-    paddingVertical: spacing.compact + 2,
+    position: 'relative',
   },
-  menuText: {
-    color: '#181A22',
-    fontSize: fontSizes.small,
-    fontWeight: '700',
+  accentLarge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    position: 'absolute',
+    right: 0,
+    top: 1,
+  },
+  accentSmall: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    position: 'absolute',
+    left: 7,
+    bottom: 5,
   },
 });

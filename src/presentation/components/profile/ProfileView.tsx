@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
 import { ProfileActionCard } from './ProfileActionCard';
 import { AppTopBar } from '../shared/AppTopBar';
 import { screenScaffoldStyles } from '../shared/screenScaffoldStyles';
+import { KeyboardAwareFormContainer } from '../shared/KeyboardAwareFormContainer';
+import { useAccessibilityTheme } from '../../hooks/useAccessibilityTheme';
 
 interface ProfileActionItem {
   id: string;
@@ -32,42 +34,50 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   memberSince,
   actions,
 }) => {
+  const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
+
   if (isLoading) {
     return (
-      <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
-        <View style={screenScaffoldStyles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Carregando perfil...</Text>
+      <SafeAreaView style={[screenScaffoldStyles.container, { backgroundColor: ui.screenBackground }]} edges={['top', 'bottom']}>
+        <View style={[screenScaffoldStyles.loadingContainer, { backgroundColor: ui.screenBackground }]}>
+          <ActivityIndicator size="large" color={ui.chipSelectedBackground} />
+          <Text style={[styles.loadingText, { marginTop: scaleSpacing(spacing.normal), color: ui.textSecondary, fontSize: scaleFont(fontSizes.medium) }]}>
+            Carregando perfil...
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
-      <ScrollView
-        style={screenScaffoldStyles.container}
-        contentContainerStyle={screenScaffoldStyles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <AppTopBar actionLabel="Menu" />
+    <KeyboardAwareFormContainer
+      containerStyle={{ backgroundColor: ui.screenBackground }}
+      contentContainerStyle={screenScaffoldStyles.contentContainer}
+      scrollEnabledWithKeyboardOnly={false}
+      safeAreaEdges={['top']}
+    >
+        <AppTopBar />
 
-      <Text style={styles.title}>Meu perfil</Text>
-      <Text style={styles.subtitle}>Gerencie sua conta, preferencias e seguranca.</Text>
+      <Text style={[styles.title, { fontSize: scaleFont(fontSizes.extraLarge + 2), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) }]}>
+        Meu perfil
+      </Text>
+      <Text style={[styles.subtitle, { fontSize: scaleFont(fontSizes.medium), color: ui.textSecondary, marginBottom: scaleSpacing(spacing.spacious) }]}>
+        Gerencie sua conta, preferencias e seguranca.
+      </Text>
 
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
+      <View style={[styles.profileCard, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious), marginBottom: scaleSpacing(spacing.spacious) }]}>
+        <View style={[styles.avatar, { backgroundColor: ui.chipSelectedBackground, marginRight: scaleSpacing(spacing.normal) }]}>
+          <Text style={[styles.avatarText, { fontSize: scaleFont(fontSizes.large + 6) }]}>{initial}</Text>
         </View>
 
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>{displayName}</Text>
-          <Text style={styles.email}>{email}</Text>
-          <Text style={styles.memberSince}>Membro desde: {memberSince}</Text>
+          <Text style={[styles.name, { fontSize: scaleFont(fontSizes.large), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.compact) }]}>{displayName}</Text>
+          <Text style={[styles.email, { fontSize: scaleFont(fontSizes.medium), color: ui.textSecondary, marginBottom: scaleSpacing(spacing.compact) }]}>{email}</Text>
+          <Text style={[styles.memberSince, { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary }]}>Membro desde: {memberSince}</Text>
         </View>
       </View>
 
-        <View style={styles.actionsContainer}>
+        <View style={[styles.actionsContainer, { marginTop: scaleSpacing(spacing.normal) }]}>
           {actions.map((action) => (
             <ProfileActionCard
               key={action.id}
@@ -79,35 +89,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             />
           ))}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+    </KeyboardAwareFormContainer>
   );
 };
 
 const styles = StyleSheet.create({
   loadingText: {
-    marginTop: spacing.normal,
-    color: colors.textSecondary,
-    fontSize: fontSizes.medium,
   },
   title: {
-    fontSize: fontSizes.extraLarge + 2,
-    color: '#1E1B4B',
     fontWeight: '700',
-    marginBottom: spacing.normal,
   },
   subtitle: {
-    fontSize: fontSizes.medium,
-    color: '#63636B',
-    marginBottom: spacing.spacious,
   },
   profileCard: {
-    backgroundColor: '#ECEDEF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D8DADF',
-    padding: spacing.spacious,
-    marginBottom: spacing.spacious,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -115,35 +111,23 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#4A67F0',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.normal,
   },
   avatarText: {
     color: colors.background,
-    fontSize: fontSizes.large + 6,
     fontWeight: '800',
   },
   profileInfo: {
     flex: 1,
   },
   name: {
-    fontSize: fontSizes.large,
-    color: '#2B2B2E',
     fontWeight: '700',
-    marginBottom: spacing.compact,
   },
   email: {
-    fontSize: fontSizes.medium,
-    color: '#5D5D66',
-    marginBottom: spacing.compact,
   },
   memberSince: {
-    fontSize: fontSizes.small + 1,
-    color: '#6A6A71',
   },
   actionsContainer: {
-    marginTop: spacing.normal,
   },
 });

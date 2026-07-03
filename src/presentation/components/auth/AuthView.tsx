@@ -12,6 +12,7 @@ import { PASSWORD_REQUIREMENTS_TEXT } from '../../../shared/utils/validators';
 import { AppTopBar } from '../shared/AppTopBar';
 import { FeedbackToast } from '../shared/FeedbackToast';
 import { KeyboardAwareFormContainer } from '../shared/KeyboardAwareFormContainer';
+import { useAccessibilityTheme } from '../../hooks/useAccessibilityTheme';
 
 type AuthToastType = 'success' | 'error' | 'warning';
 
@@ -56,10 +57,14 @@ export const AuthView: React.FC<AuthViewProps> = ({
   onSubmit,
 }) => {
   const [showPassword, setShowPassword] = React.useState(false);
+  const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
 
   return (
-    <KeyboardAwareFormContainer contentContainerStyle={styles.scrollContent}>
-      <View style={styles.content}>
+    <KeyboardAwareFormContainer
+      containerStyle={{ backgroundColor: ui.screenBackground }}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <View style={[styles.content, { paddingHorizontal: scaleSpacing(spacing.spacious) }]}>
         <FeedbackToast
           visible={Boolean(toastFeedback)}
           type={toastFeedback?.type || 'error'}
@@ -68,36 +73,81 @@ export const AuthView: React.FC<AuthViewProps> = ({
           autoHideMs={toastFeedback?.type === 'success' ? 3000 : undefined}
         />
 
-        <AppTopBar actionLabel="Entrar" />
+        <AppTopBar />
 
-        <Text style={styles.title}>{isSignup ? 'Criar sua conta' : 'Bem-vindo de volta'}</Text>
-        <Text style={styles.subtitle}>
+        <Text
+          style={[
+            styles.title,
+            { fontSize: scaleFont(fontSizes.extraLarge + 2), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) },
+          ]}
+        >
+          {isSignup ? 'Criar sua conta' : 'Bem-vindo de volta'}
+        </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { fontSize: scaleFont(fontSizes.medium), color: ui.textSecondary, marginBottom: scaleSpacing(spacing.spacious) },
+          ]}
+        >
           {isSignup
             ? 'Informe seus dados para comecar a usar o app.'
             : 'Acesse para continuar com suas atividades.'}
         </Text>
 
-        <View style={styles.formCard}>
+        <View
+          style={[
+            styles.formCard,
+            {
+              backgroundColor: ui.cardBackground,
+              borderColor: ui.cardBorder,
+              padding: scaleSpacing(spacing.spacious),
+            },
+          ]}
+        >
           {isSignup && (
             <>
               <TextInput
-                style={[styles.input, displayNameFeedback ? styles.inputError : null]}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: ui.cardBorder,
+                    backgroundColor: colors.background,
+                    paddingHorizontal: scaleSpacing(spacing.normal),
+                    paddingVertical: scaleSpacing(spacing.normal),
+                    fontSize: scaleFont(fontSizes.medium),
+                    marginBottom: scaleSpacing(spacing.normal),
+                    color: ui.textPrimary,
+                  },
+                  displayNameFeedback ? styles.inputError : null,
+                ]}
                 placeholder="Nome completo"
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={ui.textSecondary}
                 value={displayName}
                 onChangeText={setDisplayName}
                 editable={!isLoading}
                 accessibilityLabel="Campo nome completo"
               />
 
-              {displayNameFeedback ? <Text style={styles.errorText}>{displayNameFeedback}</Text> : null}
+              {displayNameFeedback ? <Text style={[styles.errorText, { fontSize: scaleFont(fontSizes.small + 1), marginBottom: scaleSpacing(spacing.normal) }]}>{displayNameFeedback}</Text> : null}
             </>
           )}
 
           <TextInput
-            style={[styles.input, emailFeedback ? styles.inputError : null]}
+            style={[
+              styles.input,
+              {
+                borderColor: ui.cardBorder,
+                backgroundColor: colors.background,
+                paddingHorizontal: scaleSpacing(spacing.normal),
+                paddingVertical: scaleSpacing(spacing.normal),
+                fontSize: scaleFont(fontSizes.medium),
+                marginBottom: scaleSpacing(spacing.normal),
+                color: ui.textPrimary,
+              },
+              emailFeedback ? styles.inputError : null,
+            ]}
             placeholder="Email"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={ui.textSecondary}
             value={email}
             onChangeText={setEmail}
             editable={!isLoading}
@@ -106,13 +156,26 @@ export const AuthView: React.FC<AuthViewProps> = ({
             accessibilityLabel="Campo email"
           />
 
-          {emailFeedback ? <Text style={styles.errorText}>{emailFeedback}</Text> : null}
+          {emailFeedback ? <Text style={[styles.errorText, { fontSize: scaleFont(fontSizes.small + 1), marginBottom: scaleSpacing(spacing.normal) }]}>{emailFeedback}</Text> : null}
 
           <View style={styles.passwordInputWrapper}>
             <TextInput
-              style={[styles.input, styles.passwordInput, passwordFeedback ? styles.inputError : null]}
+              style={[
+                styles.input,
+                styles.passwordInput,
+                {
+                  borderColor: ui.cardBorder,
+                  backgroundColor: colors.background,
+                  paddingHorizontal: scaleSpacing(spacing.normal),
+                  paddingVertical: scaleSpacing(spacing.normal),
+                  fontSize: scaleFont(fontSizes.medium),
+                  marginBottom: scaleSpacing(spacing.normal),
+                  color: ui.textPrimary,
+                },
+                passwordFeedback ? styles.inputError : null,
+              ]}
               placeholder="Senha"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={ui.textSecondary}
               value={password}
               onChangeText={setPassword}
               editable={!isLoading}
@@ -127,16 +190,38 @@ export const AuthView: React.FC<AuthViewProps> = ({
               accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               style={styles.passwordToggleButton}
             >
-              <Text style={styles.passwordToggleText}>{showPassword ? 'Ocultar' : 'Mostrar'}</Text>
+              <Text style={[styles.passwordToggleText, { fontSize: scaleFont(fontSizes.small + 1), color: ui.chipSelectedBackground }]}>
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {isSignup ? <Text style={styles.passwordHintText}>{PASSWORD_REQUIREMENTS_TEXT}</Text> : null}
+          {isSignup ? (
+            <Text
+              style={[
+                styles.passwordHintText,
+                {
+                  color: ui.textSecondary,
+                  fontSize: scaleFont(fontSizes.small),
+                  marginBottom: scaleSpacing(spacing.normal),
+                },
+              ]}
+            >
+              {PASSWORD_REQUIREMENTS_TEXT}
+            </Text>
+          ) : null}
 
-          {passwordFeedback ? <Text style={styles.errorText}>{passwordFeedback}</Text> : null}
+          {passwordFeedback ? <Text style={[styles.errorText, { fontSize: scaleFont(fontSizes.small + 1), marginBottom: scaleSpacing(spacing.normal) }]}>{passwordFeedback}</Text> : null}
 
           <TouchableOpacity
-            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+            style={[
+              styles.submitButton,
+              {
+                backgroundColor: ui.primaryButtonBackground,
+                marginTop: scaleSpacing(spacing.compact),
+              },
+              isLoading && styles.submitButtonDisabled,
+            ]}
             onPress={onSubmit}
             disabled={isLoading}
             accessibilityRole="button"
@@ -145,7 +230,9 @@ export const AuthView: React.FC<AuthViewProps> = ({
             {isLoading ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={styles.submitButtonText}>{isSignup ? 'Criar conta' : 'Entrar'}</Text>
+              <Text style={[styles.submitButtonText, { color: ui.primaryButtonText, fontSize: scaleFont(fontSizes.medium) }]}>
+                {isSignup ? 'Criar conta' : 'Entrar'}
+              </Text>
             )}
           </TouchableOpacity>
 
@@ -154,7 +241,16 @@ export const AuthView: React.FC<AuthViewProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Alternar entre login e cadastro"
           >
-            <Text style={styles.toggleText}>
+            <Text
+              style={[
+                styles.toggleText,
+                {
+                  marginTop: scaleSpacing(spacing.spacious),
+                  fontSize: scaleFont(fontSizes.medium),
+                  color: ui.chipSelectedBackground,
+                },
+              ]}
+            >
               {isSignup ? 'Ja tem conta? Entrar' : 'Ainda nao tem conta? Criar agora'}
             </Text>
           </TouchableOpacity>
@@ -171,37 +267,20 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: spacing.spacious,
   },
   title: {
-    fontSize: fontSizes.extraLarge + 2,
-    color: '#1E1B4B',
     fontWeight: '700',
-    marginBottom: spacing.normal,
   },
   subtitle: {
-    fontSize: fontSizes.medium,
-    color: '#63636B',
-    marginBottom: spacing.spacious,
   },
   formCard: {
-    backgroundColor: '#ECEDEF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D8DADF',
-    padding: spacing.spacious,
   },
   input: {
     minHeight: 48,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#CFD1D7',
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.normal,
-    paddingVertical: spacing.normal,
-    fontSize: fontSizes.medium,
-    marginBottom: spacing.normal,
-    color: colors.text,
   },
   passwordInputWrapper: {
     position: 'relative',
@@ -217,21 +296,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   passwordToggleText: {
-    fontSize: fontSizes.small + 1,
     fontWeight: '700',
-    color: '#3F4FA8',
   },
   passwordHintText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.small,
     marginTop: -2,
-    marginBottom: spacing.normal,
     lineHeight: 18,
   },
   errorText: {
     color: colors.error,
-    fontSize: fontSizes.small + 1,
-    marginBottom: spacing.normal,
   },
   inputError: {
     borderColor: colors.error,
@@ -239,24 +311,17 @@ const styles = StyleSheet.create({
   submitButton: {
     minHeight: 48,
     borderRadius: 12,
-    backgroundColor: '#1E2028',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.compact,
   },
   submitButtonDisabled: {
     opacity: 0.7,
   },
   submitButtonText: {
-    color: colors.background,
-    fontSize: fontSizes.medium,
     fontWeight: '700',
   },
   toggleText: {
     textAlign: 'center',
-    marginTop: spacing.spacious,
-    fontSize: fontSizes.medium,
-    color: '#3F4FA8',
     fontWeight: '600',
   },
 });

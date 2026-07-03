@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
+import { useAccessibilityTheme } from '../../hooks/useAccessibilityTheme';
 
 type ActionTone = 'default' | 'danger';
 
@@ -19,20 +20,42 @@ export const ProfileActionCard: React.FC<ProfileActionCardProps> = ({
   tone = 'default',
   onPress,
 }) => {
+  const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
+
   return (
-    <View style={[styles.card, tone === 'danger' && styles.cardDanger]}>
-      <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: ui.cardBackground,
+          borderColor: ui.cardBorder,
+          padding: scaleSpacing(spacing.spacious),
+          marginBottom: scaleSpacing(spacing.normal),
+        },
+        tone === 'danger' && styles.cardDanger,
+        tone === 'danger' && { borderColor: ui.dangerBorder, backgroundColor: ui.dangerSurface },
+      ]}
+    >
+      <View style={[styles.content, { marginRight: scaleSpacing(spacing.normal) }]}>
+        <Text style={[styles.title, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.compact) }]}>{title}</Text>
+        <Text style={[styles.subtitle, { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary }]}>{subtitle}</Text>
       </View>
 
       <TouchableOpacity
-        style={[styles.button, tone === 'danger' && styles.buttonDanger]}
+        style={[
+          styles.button,
+          {
+            backgroundColor: ui.primaryButtonBackground,
+            paddingHorizontal: scaleSpacing(spacing.normal),
+          },
+          tone === 'danger' && styles.buttonDanger,
+          tone === 'danger' && { backgroundColor: ui.dangerBorder },
+        ]}
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={`${actionLabel} ${title}`}
       >
-        <Text style={styles.buttonText}>{actionLabel}</Text>
+        <Text style={[styles.buttonText, { color: colors.background, fontSize: scaleFont(fontSizes.small + 1) }]}>{actionLabel}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -40,12 +63,8 @@ export const ProfileActionCard: React.FC<ProfileActionCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ECEDEF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D8DADF',
-    padding: spacing.spacious,
-    marginBottom: spacing.normal,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -56,17 +75,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginRight: spacing.normal,
   },
   title: {
-    fontSize: fontSizes.medium,
-    color: '#2B2B2E',
     fontWeight: '700',
-    marginBottom: spacing.compact,
   },
   subtitle: {
-    fontSize: fontSizes.small + 1,
-    color: '#6A6A71',
   },
   button: {
     minHeight: 42,
@@ -75,14 +88,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E2028',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.normal,
   },
   buttonDanger: {
     backgroundColor: colors.error,
   },
   buttonText: {
-    color: colors.background,
-    fontSize: fontSizes.small + 1,
     fontWeight: '700',
   },
 });

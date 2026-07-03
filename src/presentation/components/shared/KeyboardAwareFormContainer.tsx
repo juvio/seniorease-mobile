@@ -9,7 +9,7 @@ import {
   ViewStyle,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { screenScaffoldStyles } from './screenScaffoldStyles';
 
 interface KeyboardAwareFormContainerProps {
@@ -18,6 +18,7 @@ interface KeyboardAwareFormContainerProps {
   contentContainerStyle?: StyleProp<ViewStyle>;
   keyboardVerticalOffset?: number;
   scrollEnabledWithKeyboardOnly?: boolean;
+  safeAreaEdges?: Edge[];
 }
 
 export const KeyboardAwareFormContainer: React.FC<KeyboardAwareFormContainerProps> = ({
@@ -26,6 +27,7 @@ export const KeyboardAwareFormContainer: React.FC<KeyboardAwareFormContainerProp
   contentContainerStyle,
   keyboardVerticalOffset = 0,
   scrollEnabledWithKeyboardOnly = true,
+  safeAreaEdges = ['top', 'bottom'],
 }) => {
   const insets = useSafeAreaInsets();
   const [keyboardVisible, setKeyboardVisible] = React.useState(false);
@@ -50,7 +52,7 @@ export const KeyboardAwareFormContainer: React.FC<KeyboardAwareFormContainerProp
   const effectiveKeyboardOffset = keyboardVerticalOffset + insets.top;
 
   return (
-    <SafeAreaView style={[screenScaffoldStyles.container, containerStyle]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[screenScaffoldStyles.container, containerStyle]} edges={safeAreaEdges}>
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -59,7 +61,6 @@ export const KeyboardAwareFormContainer: React.FC<KeyboardAwareFormContainerProp
         <ScrollView
           contentContainerStyle={[
             styles.defaultScrollContent,
-            { paddingBottom: insets.bottom },
             contentContainerStyle,
           ]}
           keyboardShouldPersistTaps="handled"

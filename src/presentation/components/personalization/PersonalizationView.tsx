@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   Switch,
@@ -13,6 +12,9 @@ import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
 import { AccessibilitySettings } from '../../../domain/entities/Settings';
 import { AppTopBar } from '../shared/AppTopBar';
 import { screenScaffoldStyles } from '../shared/screenScaffoldStyles';
+import { KeyboardAwareFormContainer } from '../shared/KeyboardAwareFormContainer';
+import { useAccessibilityTheme } from '../../hooks/useAccessibilityTheme';
+import { FeedbackToast } from '../shared/FeedbackToast';
 
 type Option<T> = {
   value: T;
@@ -26,6 +28,8 @@ interface PersonalizationViewProps {
   initial: string;
   memberSince: string;
   accessibility: AccessibilitySettings | undefined;
+  toast: { visible: boolean; type: 'success' | 'warning' | 'error'; message: string };
+  setToast: (value: { visible: boolean; type: 'success' | 'warning' | 'error'; message: string }) => void;
   fontSizeOptions: Option<AccessibilitySettings['fontSize']>[];
   spacingOptions: Option<AccessibilitySettings['spacing']>[];
   contrastOptions: Option<AccessibilitySettings['contrast']>[];
@@ -45,6 +49,8 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
   initial,
   memberSince,
   accessibility,
+  toast,
+  setToast,
   fontSizeOptions,
   spacingOptions,
   contrastOptions,
@@ -56,51 +62,73 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
   onConfirmCriticalActionsToggle,
   onSave,
 }) => {
+  const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
+
   if (isLoading || !accessibility) {
     return (
-      <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
-        <View style={screenScaffoldStyles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Carregando configuracoes...</Text>
+      <SafeAreaView style={[screenScaffoldStyles.container, { backgroundColor: ui.screenBackground }]} edges={['top', 'bottom']}>
+        <View style={[screenScaffoldStyles.loadingContainer, { backgroundColor: ui.screenBackground }]}>
+          <ActivityIndicator size="large" color={ui.chipSelectedBackground} />
+          <Text style={[styles.loadingText, { marginTop: scaleSpacing(spacing.normal), color: ui.textSecondary, fontSize: scaleFont(fontSizes.medium) }]}>
+            Carregando configuracoes...
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
-      <ScrollView
-        style={screenScaffoldStyles.container}
-        contentContainerStyle={screenScaffoldStyles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <AppTopBar actionLabel="Menu" />
+    <KeyboardAwareFormContainer
+      containerStyle={{ backgroundColor: ui.screenBackground }}
+      contentContainerStyle={screenScaffoldStyles.contentContainer}
+      scrollEnabledWithKeyboardOnly={false}
+      safeAreaEdges={['top']}
+    >
+        <AppTopBar />
 
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
+      <FeedbackToast
+        visible={toast.visible}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast({ ...toast, visible: false })}
+        autoHideMs={3200}
+      />
+
+      <View style={[styles.profileCard, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious), marginBottom: scaleSpacing(spacing.spacious) }]}>
+        <View style={[styles.avatar, { backgroundColor: ui.chipSelectedBackground, marginRight: scaleSpacing(spacing.normal) }]}>
+          <Text style={[styles.avatarText, { fontSize: scaleFont(fontSizes.large + 4) }]}>{initial}</Text>
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{displayName}</Text>
-          <Text style={styles.profileEmail}>{email}</Text>
-          <Text style={styles.profileMemberSince}>Membro desde: {memberSince}</Text>
+          <Text style={[styles.profileName, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary }]}>{displayName}</Text>
+          <Text style={[styles.profileEmail, { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary }]}>{email}</Text>
+          <Text style={[styles.profileMemberSince, { fontSize: scaleFont(fontSizes.small), color: ui.textSecondary }]}>Membro desde: {memberSince}</Text>
         </View>
       </View>
 
-      <Text style={styles.title}>Deixe o SeniorEase confortavel para voce</Text>
-      <Text style={styles.subtitle}>
-        Ajuste legibilidade, contraste, espacamento, navegacao e confirmacoes.
+      <Text style={[styles.title, { fontSize: scaleFont(fontSizes.extraLarge + 2), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) }]}>
+        Configurações
+      </Text>
+      <Text style={[styles.subtitle, { fontSize: scaleFont(fontSizes.medium), color: ui.textSecondary, marginBottom: scaleSpacing(spacing.spacious) }]}>
+        Ajuste leitura, contraste, espaçamento e confirmações.
       </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Tamanho da fonte</Text>
-        <View style={styles.optionsContainer}>
+      <View style={[styles.card, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious), marginBottom: scaleSpacing(spacing.spacious) }]}>
+        <Text style={[styles.sectionTitle, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) }]}>
+          Tamanho da fonte
+        </Text>
+        <View style={[styles.optionsContainer, { gap: scaleSpacing(spacing.compact) }]}>
           {fontSizeOptions.map((option) => (
             <TouchableOpacity
               key={option.value}
               style={[
                 styles.option,
+                {
+                  backgroundColor: ui.chipBackground,
+                  paddingHorizontal: scaleSpacing(spacing.spacious),
+                  paddingVertical: scaleSpacing(spacing.normal),
+                },
                 accessibility.fontSize === option.value && styles.optionSelected,
+                accessibility.fontSize === option.value && { backgroundColor: ui.chipSelectedBackground },
               ]}
               onPress={() => onFontSizeChange(option.value)}
               accessibilityRole="radio"
@@ -110,7 +138,9 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
               <Text
                 style={[
                   styles.optionText,
+                  { fontSize: scaleFont(fontSizes.small + 1), color: ui.chipText },
                   accessibility.fontSize === option.value && styles.optionTextSelected,
+                  accessibility.fontSize === option.value && { color: ui.chipSelectedText },
                 ]}
               >
                 {option.label}
@@ -120,15 +150,23 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Conforto de espacamento</Text>
-        <View style={styles.optionsContainer}>
+      <View style={[styles.card, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious), marginBottom: scaleSpacing(spacing.spacious) }]}>
+        <Text style={[styles.sectionTitle, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) }]}>
+          Conforto de espacamento
+        </Text>
+        <View style={[styles.optionsContainer, { gap: scaleSpacing(spacing.compact) }]}>
           {spacingOptions.map((option) => (
             <TouchableOpacity
               key={option.value}
               style={[
                 styles.option,
+                {
+                  backgroundColor: ui.chipBackground,
+                  paddingHorizontal: scaleSpacing(spacing.spacious),
+                  paddingVertical: scaleSpacing(spacing.normal),
+                },
                 accessibility.spacing === option.value && styles.optionSelected,
+                accessibility.spacing === option.value && { backgroundColor: ui.chipSelectedBackground },
               ]}
               onPress={() => onSpacingChange(option.value)}
               accessibilityRole="radio"
@@ -138,7 +176,9 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
               <Text
                 style={[
                   styles.optionText,
+                  { fontSize: scaleFont(fontSizes.small + 1), color: ui.chipText },
                   accessibility.spacing === option.value && styles.optionTextSelected,
+                  accessibility.spacing === option.value && { color: ui.chipSelectedText },
                 ]}
               >
                 {option.label}
@@ -148,15 +188,23 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Nivel de contraste</Text>
-        <View style={styles.optionsContainer}>
+      <View style={[styles.card, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious), marginBottom: scaleSpacing(spacing.spacious) }]}>
+        <Text style={[styles.sectionTitle, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) }]}>
+          Nivel de contraste
+        </Text>
+        <View style={[styles.optionsContainer, { gap: scaleSpacing(spacing.compact) }]}>
           {contrastOptions.map((option) => (
             <TouchableOpacity
               key={option.value}
               style={[
                 styles.option,
+                {
+                  backgroundColor: ui.chipBackground,
+                  paddingHorizontal: scaleSpacing(spacing.spacious),
+                  paddingVertical: scaleSpacing(spacing.normal),
+                },
                 accessibility.contrast === option.value && styles.optionSelected,
+                accessibility.contrast === option.value && { backgroundColor: ui.chipSelectedBackground },
               ]}
               onPress={() => onContrastChange(option.value)}
               accessibilityRole="radio"
@@ -166,7 +214,9 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
               <Text
                 style={[
                   styles.optionText,
+                  { fontSize: scaleFont(fontSizes.small + 1), color: ui.chipText },
                   accessibility.contrast === option.value && styles.optionTextSelected,
+                  accessibility.contrast === option.value && { color: ui.chipSelectedText },
                 ]}
               >
                 {option.label}
@@ -176,107 +226,91 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Modo de interface</Text>
-        <Text style={styles.helperText}>
-          O modo simplificado mantem apenas escolhas essenciais para facilitar as acoes.
+      <View style={[styles.card, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious), marginBottom: scaleSpacing(spacing.spacious) }]}>
+        <Text style={[styles.sectionTitle, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) }]}>
+          Preferências de comportamento
+        </Text>
+        <Text style={[styles.helperText, { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary, marginBottom: scaleSpacing(spacing.normal) }]}>
+          Estes ajustes definem como a Home e as ações funcionam no dia a dia.
         </Text>
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Navegacao simplificada</Text>
+        <View style={[styles.switchRow, { paddingVertical: scaleSpacing(spacing.normal / 2) }]}>
+          <Text style={[styles.switchLabel, { marginRight: scaleSpacing(spacing.normal), fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary }]}>
+            Modo simplificado
+          </Text>
           <Switch
             value={accessibility.interfaceMode === 'basic'}
             onValueChange={onInterfaceModeToggle}
-            trackColor={{ false: colors.border, true: '#8FD3A9' }}
-            thumbColor={accessibility.interfaceMode === 'basic' ? colors.success : '#FFFFFF'}
+            trackColor={{ false: ui.cardBorder, true: '#8FD3A9' }}
+            thumbColor={accessibility.interfaceMode === 'basic' ? '#34C759' : '#FFFFFF'}
             accessibilityLabel="Alternar modo simplificado"
           />
         </View>
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Feedback reforcado</Text>
+        <View style={[styles.switchRow, { paddingVertical: scaleSpacing(spacing.normal / 2) }]}>
+          <Text style={[styles.switchLabel, { marginRight: scaleSpacing(spacing.normal), fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary }]}>
+            Feedback visual reforçado
+          </Text>
           <Switch
             value={accessibility.reinforcedFeedback}
             onValueChange={onReinforcedFeedbackToggle}
-            trackColor={{ false: colors.border, true: '#8FD3A9' }}
-            thumbColor={accessibility.reinforcedFeedback ? colors.success : '#FFFFFF'}
+            trackColor={{ false: ui.cardBorder, true: '#8FD3A9' }}
+            thumbColor={accessibility.reinforcedFeedback ? '#34C759' : '#FFFFFF'}
             accessibilityLabel="Alternar feedback reforcado"
           />
         </View>
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Confirmacao de acoes criticas</Text>
+        <View style={[styles.switchRow, { paddingVertical: scaleSpacing(spacing.normal / 2) }]}>
+          <Text style={[styles.switchLabel, { marginRight: scaleSpacing(spacing.normal), fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary }]}>
+            Confirmação adicional antes de ações críticas
+          </Text>
           <Switch
             value={accessibility.confirmCriticalActions}
             onValueChange={onConfirmCriticalActionsToggle}
-            trackColor={{ false: colors.border, true: '#8FD3A9' }}
-            thumbColor={accessibility.confirmCriticalActions ? colors.success : '#FFFFFF'}
+            trackColor={{ false: ui.cardBorder, true: '#8FD3A9' }}
+            thumbColor={accessibility.confirmCriticalActions ? '#34C759' : '#FFFFFF'}
             accessibilityLabel="Alternar confirmacao de acoes criticas"
           />
         </View>
       </View>
 
         <TouchableOpacity
-          style={styles.saveButton}
+          style={[styles.saveButton, { backgroundColor: ui.chipSelectedBackground, paddingVertical: scaleSpacing(spacing.spacious), marginTop: scaleSpacing(spacing.normal) }]}
           onPress={onSave}
           accessibilityRole="button"
           accessibilityLabel="Salvar configuracoes"
         >
-          <Text style={styles.saveButtonText}>Salvar alteracoes</Text>
+          <Text style={[styles.saveButtonText, { color: ui.chipSelectedText, fontSize: scaleFont(fontSizes.medium) }]}>Salvar alteracoes</Text>
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+    </KeyboardAwareFormContainer>
   );
 };
 
 const styles = StyleSheet.create({
   loadingText: {
-    marginTop: spacing.normal,
-    color: colors.textSecondary,
-    fontSize: fontSizes.medium,
   },
   title: {
-    fontSize: fontSizes.extraLarge + 2,
     fontWeight: 'bold',
-    color: '#1E1B4B',
     lineHeight: 36,
-    marginBottom: spacing.normal,
   },
   subtitle: {
-    fontSize: fontSizes.medium,
-    color: colors.textSecondary,
-    marginBottom: spacing.spacious,
   },
   card: {
-    backgroundColor: '#ECEDEF',
     borderRadius: 16,
-    padding: spacing.spacious,
     borderWidth: 1,
-    borderColor: '#DEDFE3',
-    marginBottom: spacing.spacious,
   },
   sectionTitle: {
-    fontSize: fontSizes.medium,
     fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.normal,
   },
   helperText: {
-    fontSize: fontSizes.small + 1,
-    color: colors.textSecondary,
     lineHeight: 18,
-    marginBottom: spacing.normal,
   },
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.compact,
   },
   option: {
-    paddingHorizontal: spacing.spacious,
-    paddingVertical: spacing.normal,
     borderRadius: 999,
-    backgroundColor: '#E3E4E8',
     minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
@@ -285,8 +319,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#4A67F0',
   },
   optionText: {
-    fontSize: fontSizes.small + 1,
-    color: colors.text,
     fontWeight: '600',
   },
   optionTextSelected: {
@@ -296,36 +328,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.normal / 2,
   },
   switchLabel: {
     flex: 1,
-    marginRight: spacing.normal,
-    fontSize: fontSizes.medium,
-    color: colors.text,
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: colors.success,
-    paddingVertical: spacing.spacious,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: spacing.normal,
     minHeight: 48,
     justifyContent: 'center',
   },
   saveButtonText: {
-    color: colors.background,
-    fontSize: fontSizes.medium,
     fontWeight: 'bold',
   },
   profileCard: {
-    backgroundColor: '#ECEDEF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D8DADF',
-    padding: spacing.spacious,
-    marginBottom: spacing.spacious,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -333,32 +352,23 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#4A67F0',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.normal,
   },
   avatarText: {
     color: colors.background,
-    fontSize: fontSizes.large + 4,
     fontWeight: '800',
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: fontSizes.medium,
-    color: '#2B2B2E',
     fontWeight: '700',
     marginBottom: 2,
   },
   profileEmail: {
-    fontSize: fontSizes.small + 1,
-    color: '#5D5D66',
     marginBottom: 2,
   },
   profileMemberSince: {
-    fontSize: fontSizes.small,
-    color: '#6A6A71',
   },
 });

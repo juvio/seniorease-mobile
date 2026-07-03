@@ -1,5 +1,4 @@
-import { useCallback, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { AccessibilitySettings } from '../../domain/entities/Settings';
 import { useSettings } from './useSettings';
 import { useAuth } from './useAuth';
@@ -36,6 +35,11 @@ const spacingOptions: Option<AccessibilitySettings['spacing']>[] = [
 export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookParams) => {
   const { settings, loading, loadSettings, updateSettings, updateAccessibilitySettings } = useSettings();
   const { user } = useAuth();
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    type: 'success' | 'warning' | 'error';
+    message: string;
+  }>({ visible: false, type: 'success', message: '' });
 
   useEffect(() => {
     loadSettings();
@@ -46,10 +50,10 @@ export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookPa
 
     try {
       await updateSettings(settings.accessibility);
-      Alert.alert('Sucesso', 'Configuracoes salvas!');
+      setToast({ visible: true, type: 'success', message: 'Configuracoes salvas!' });
       onSave?.();
     } catch (error) {
-      Alert.alert('Erro', 'Nao foi possivel salvar as configuracoes');
+      setToast({ visible: true, type: 'error', message: 'Nao foi possivel salvar as configuracoes' });
     }
   }, [onSave, settings, updateSettings]);
 
@@ -86,6 +90,8 @@ export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookPa
     fontSizeOptions,
     contrastOptions,
     spacingOptions,
+    toast,
+    setToast,
     onFontSizeChange: (fontSize: AccessibilitySettings['fontSize']) =>
       updateAccessibilitySettings({ fontSize }),
     onContrastChange: (contrast: AccessibilitySettings['contrast']) =>
