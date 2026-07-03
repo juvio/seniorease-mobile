@@ -4,6 +4,16 @@ import { useTasksStore } from '../../shared/stores/tasksStore';
 import { useAuthStore } from '../../shared/stores/authStore';
 import { Task } from '../../domain/entities/Task';
 
+interface CreateTaskInput {
+  title: string;
+  dueDate: Date;
+  reminderTime?: string;
+  description?: string;
+  recurrenceType?: Task['recurrenceType'];
+  recurrenceIntervalDays?: number;
+  seriesId?: string;
+}
+
 export const useTasks = () => {
   const user = useAuthStore((state) => state.user);
 
@@ -13,6 +23,8 @@ export const useTasks = () => {
   const setTasks = useTasksStore((state) => state.setTasks);
   const addTaskToStore = useTasksStore((state) => state.addTask);
   const updateTaskInStore = useTasksStore((state) => state.updateTask);
+  const deleteTaskInStore = useTasksStore((state) => state.deleteTask);
+  const deleteTasksInStore = useTasksStore((state) => state.deleteTasks);
   const setLoading = useTasksStore((state) => state.setLoading);
   const setError = useTasksStore((state) => state.setError);
 
@@ -37,7 +49,7 @@ export const useTasks = () => {
   }, [user, setLoading, setError, tasksService, setTasks]);
 
   const addTask = useCallback(
-    async (title: string, description: string) => {
+    async (input: CreateTaskInput) => {
       if (!user) return;
 
       try {
@@ -47,12 +59,17 @@ export const useTasks = () => {
         const newTask: Task = {
           id: Date.now().toString(),
           userId: user.id,
-          title,
-          description,
+          title: input.title,
+          description: input.description || '',
           steps: [],
           completed: false,
           createdAt: new Date(),
           updatedAt: new Date(),
+          dueDate: input.dueDate,
+          reminderTime: input.reminderTime,
+          seriesId: input.seriesId,
+          recurrenceType: input.recurrenceType,
+          recurrenceIntervalDays: input.recurrenceIntervalDays,
         };
 
         await tasksService.createTask(newTask);
@@ -92,6 +109,48 @@ export const useTasks = () => {
     [setLoading, setError, tasksService, updateTaskInStore]
   );
 
+  const deleteTask = useCallback(
+    async (taskId: string) => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        await tasksService.deleteTask(user.id, taskId);
+        deleteTaskInStore(taskId);
+      } catch (error: any) {
+        const errorMessage = error?.message || 'Erro ao excluir tarefa';
+        setError(errorMessage);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, setLoading, setError, tasksService, deleteTaskInStore]
+  );
+
+  const deleteTasks = useCallback(
+    async (taskIds: string[]) => {
+      if (!user || taskIds.length === 0) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        await Promise.all(taskIds.map((taskId) => tasksService.deleteTask(user.id, taskId)));
+        deleteTasksInStore(taskIds);
+      } catch (error: any) {
+        const errorMessage = error?.message || 'Erro ao excluir tarefas';
+        setError(errorMessage);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, setLoading, setError, tasksService, deleteTasksInStore]
+  );
+
   return {
     tasks,
     loading,
@@ -99,5 +158,7 @@ export const useTasks = () => {
     loadTasks,
     addTask,
     updateTask,
+    deleteTask,
+    deleteTasks,
   };
 };

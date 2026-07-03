@@ -4,58 +4,121 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { fontSizes, spacing, colors } from '../../../shared/constants/theme';
-import { Task } from '../../../domain/entities/Task';
+import { fontSizes, spacing } from '../../../shared/constants/theme';
 import { TaskActivityCard } from './TaskActivityCard';
 import { AppTopBar } from '../shared/AppTopBar';
 import { screenScaffoldStyles } from '../shared/screenScaffoldStyles';
 import { KeyboardAwareFormContainer } from '../shared/KeyboardAwareFormContainer';
+import { FeedbackToast } from '../shared/FeedbackToast';
+import { HomeHistoryItem, HomeTaskItem } from '../../hooks/useTasksScreen';
+import { TaskFormModal } from '../shared/TaskFormModal';
+import { useAccessibilityTheme } from '../../hooks/useAccessibilityTheme';
 
-interface TaskActivityItem {
-  id: string;
-  title: string;
-  reminderText: string;
-  statusLabel: string;
-  actionLabel: string;
-  statusTone: 'warning' | 'neutral' | 'success';
-  sourceTask: Task;
-}
+type HistoryFilter = 'completed' | 'pending';
+type FormStep = 'title' | 'dateTime' | 'recurrence';
+type RecurrenceChoice = 'none' | 'weekly';
 
 interface TasksViewProps {
   isLoading: boolean;
-  activityItems: TaskActivityItem[];
+  isSimplifiedMode: boolean;
+  reinforcedFeedback: boolean;
+  dayTitle: string;
+  homeTasks: HomeTaskItem[];
+  historyItems: HomeHistoryItem[];
+  historyFilter: HistoryFilter;
+  showHistoryFilters: boolean;
   showForm: boolean;
-  newTaskTitle: string;
-  newTaskDescription: string;
+  formStep: FormStep;
+  titleInput: string;
+  dateInput: string;
+  dueDate: Date | null;
+  timeInput: string;
+  isAnytime: boolean;
+  recurrenceChoice: RecurrenceChoice;
+  showPreviousDayButton: boolean;
+  showNextDayButton: boolean;
+  toast: { visible: boolean; type: 'success' | 'warning' | 'error'; message: string };
   setShowForm: (value: boolean) => void;
-  setNewTaskTitle: (value: string) => void;
-  setNewTaskDescription: (value: string) => void;
-  onAddTask: () => void;
-  onPrimaryAction: (task: Task) => void;
+  setTitleInput: (value: string) => void;
+  setTimeInput: (value: string) => void;
+  setIsAnytime: (value: boolean) => void;
+  setHistoryFilter: (value: HistoryFilter) => void;
+  setRecurrenceChoice: (value: RecurrenceChoice) => void;
+  setToast: (value: { visible: boolean; type: 'success' | 'warning' | 'error'; message: string }) => void;
+  onSelectDueDate: (value: Date) => void;
+  onGoToPreviousDay: () => void;
+  onGoToNextDay: () => void;
+  onCloseForm: () => void;
+  onNextFormStep: () => void;
+  onSaveTask: () => void;
+  onCompleteTask: (task: HomeTaskItem['sourceTask']) => void;
+  onDeleteTask: (task: HomeTaskItem['sourceTask']) => void;
+  onShowCustomRecurrenceInfo: () => void;
 }
 
 export const TasksView: React.FC<TasksViewProps> = ({
   isLoading,
-  activityItems,
+  isSimplifiedMode,
+  reinforcedFeedback,
+  dayTitle,
+  homeTasks,
+  historyItems,
+  historyFilter,
+  showHistoryFilters,
   showForm,
-  newTaskTitle,
-  newTaskDescription,
+  formStep,
+  titleInput,
+  dateInput,
+  dueDate,
+  timeInput,
+  isAnytime,
+  recurrenceChoice,
+  showPreviousDayButton,
+  showNextDayButton,
+  toast,
   setShowForm,
-  setNewTaskTitle,
-  setNewTaskDescription,
-  onAddTask,
-  onPrimaryAction,
+  setTitleInput,
+  setTimeInput,
+  setIsAnytime,
+  setHistoryFilter,
+  setRecurrenceChoice,
+  setToast,
+  onSelectDueDate,
+  onGoToPreviousDay,
+  onGoToNextDay,
+  onCloseForm,
+  onNextFormStep,
+  onSaveTask,
+  onCompleteTask,
+  onDeleteTask,
+  onShowCustomRecurrenceInfo,
 }) => {
+  const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
+  const emptyStateTitle = dayTitle === 'Hoje' ? 'Sem tarefas para hoje' : `Sem tarefas para ${dayTitle}`;
+
   if (isLoading) {
     return (
-      <SafeAreaView style={screenScaffoldStyles.container} edges={['top', 'bottom']}>
-        <View style={screenScaffoldStyles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Carregando atividades...</Text>
+      <SafeAreaView
+        style={[screenScaffoldStyles.container, { backgroundColor: ui.screenBackground }]}
+        edges={['top', 'bottom']}
+      >
+        <View style={[screenScaffoldStyles.loadingContainer, { backgroundColor: ui.screenBackground }]}>
+          <ActivityIndicator size="large" color={ui.chipSelectedBackground} />
+          <Text
+            style={[
+              styles.loadingText,
+              {
+                marginTop: scaleSpacing(spacing.normal),
+                fontSize: scaleFont(fontSizes.medium),
+                color: ui.textSecondary,
+              },
+            ]}
+          >
+            Carregando tarefas...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -63,138 +126,347 @@ export const TasksView: React.FC<TasksViewProps> = ({
 
   return (
     <KeyboardAwareFormContainer
+      containerStyle={{ backgroundColor: ui.screenBackground }}
       contentContainerStyle={screenScaffoldStyles.contentContainer}
       scrollEnabledWithKeyboardOnly={false}
+      safeAreaEdges={['top']}
     >
-      <AppTopBar actionLabel="Menu" />
+      <AppTopBar />
 
-      <Text style={styles.title}>Atividades de hoje</Text>
-      <Text style={styles.subtitle}>
-        Lista simples com lembretes, status e uma ação principal por atividade.
+      <FeedbackToast
+        visible={toast.visible}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast({ ...toast, visible: false })}
+        autoHideMs={reinforcedFeedback ? 4200 : 2400}
+        reinforced={reinforcedFeedback}
+      />
+
+      {isSimplifiedMode ? (
+        <View style={[styles.headerRow, { marginBottom: scaleSpacing(spacing.normal), gap: scaleSpacing(spacing.normal) }]}>
+          <Text style={[styles.title, { fontSize: scaleFont(fontSizes.large + 2), color: ui.textPrimary }]}>{dayTitle}</Text>
+          {!showForm && (
+            <TouchableOpacity
+              style={[
+                styles.newButtonCompact,
+                {
+                  backgroundColor: ui.primaryButtonBackground,
+                  paddingHorizontal: scaleSpacing(spacing.normal),
+                },
+              ]}
+              onPress={() => setShowForm(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Adicionar nova tarefa"
+            >
+              <Text style={[styles.newButtonText, { color: ui.primaryButtonText, fontSize: scaleFont(fontSizes.small + 1) }]}>
+                + Nova tarefa
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : (
+        <View style={[styles.navigationRow, { marginBottom: scaleSpacing(spacing.normal), gap: scaleSpacing(spacing.normal) }]}>
+          {showPreviousDayButton ? (
+            <TouchableOpacity
+              style={[styles.dayArrowButton, { backgroundColor: ui.chipBackground }]}
+              onPress={onGoToPreviousDay}
+              accessibilityRole="button"
+              accessibilityLabel="Ir para o dia anterior com tarefas"
+            >
+              <Text style={[styles.dayArrowText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.medium) }]}>{'<'}</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.dayArrowSpacer} />
+          )}
+
+          <View style={styles.dayLabelContainer}>
+            <Text style={[styles.title, styles.dayLabelCentered, { fontSize: scaleFont(fontSizes.large + 2), color: ui.textPrimary }]}>
+              {dayTitle}
+            </Text>
+          </View>
+
+          {showNextDayButton ? (
+            <TouchableOpacity
+              style={[styles.dayArrowButton, { backgroundColor: ui.chipBackground }]}
+              onPress={onGoToNextDay}
+              accessibilityRole="button"
+              accessibilityLabel="Ir para o próximo dia com tarefas"
+            >
+              <Text style={[styles.dayArrowText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.medium) }]}>{'>'}</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.dayArrowSpacer} />
+          )}
+        </View>
+      )}
+
+      {!showForm && !isSimplifiedMode ? (
+        <View style={[styles.newTaskButtonRow, { marginBottom: scaleSpacing(spacing.normal) }]}>
+          <TouchableOpacity
+            style={[
+              styles.newButtonCompact,
+              {
+                backgroundColor: ui.primaryButtonBackground,
+                paddingHorizontal: scaleSpacing(spacing.normal),
+              },
+            ]}
+            onPress={() => setShowForm(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Adicionar nova tarefa"
+          >
+            <Text style={[styles.newButtonText, { color: ui.primaryButtonText, fontSize: scaleFont(fontSizes.small + 1) }]}>+ Nova tarefa</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      <Text
+        style={[
+          styles.subtitle,
+          { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary, marginBottom: scaleSpacing(spacing.normal) },
+        ]}
+      >
+        Suas tarefas do dia selecionado
       </Text>
 
-      <View style={styles.listContainer}>
-        {activityItems.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateTitle}>Sem atividades por enquanto</Text>
-            <Text style={styles.emptyStateDescription}>
-              Toque em "Nova atividade" para começar.
+      <View
+        style={[
+          styles.listContainer,
+          {
+            backgroundColor: ui.cardBackground,
+            borderColor: ui.cardBorder,
+            padding: scaleSpacing(spacing.normal),
+            marginBottom: scaleSpacing(spacing.spacious),
+          },
+        ]}
+      >
+        {homeTasks.length === 0 ? (
+          <View style={[styles.emptyState, { paddingVertical: scaleSpacing(spacing.extraSpacious * 2) }]}>
+            <Text
+              style={[
+                styles.emptyStateTitle,
+                { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.compact) },
+              ]}
+            >
+              {emptyStateTitle}
+            </Text>
+            <Text style={[styles.emptyStateDescription, { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary }]}>
+              Toque em Nova tarefa para começar.
             </Text>
           </View>
         ) : (
-          activityItems.map((item) => (
+          homeTasks.map((item) => (
             <TaskActivityCard
               key={item.id}
               title={item.title}
-              reminderText={item.reminderText}
+              dateLabel={item.dateLabel}
+              timeLabel={item.timeLabel}
               statusLabel={item.statusLabel}
-              actionLabel={item.actionLabel}
-              statusTone={item.statusTone}
-              onPrimaryAction={() => onPrimaryAction(item.sourceTask)}
+              showOverdueWarning={item.hasOverdueWarning}
+              overdueWarningText={item.overdueWarningText}
+              reinforcedFeedback={reinforcedFeedback}
+              onComplete={() => onCompleteTask(item.sourceTask)}
+              onDelete={() => onDeleteTask(item.sourceTask)}
             />
           ))
         )}
       </View>
 
-      {!showForm && (
-        <TouchableOpacity
-          style={styles.newButton}
-          onPress={() => setShowForm(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Criar nova atividade"
+      <TaskFormModal
+        visible={showForm}
+        isSimplifiedMode={isSimplifiedMode}
+        formStep={formStep}
+        titleInput={titleInput}
+        dateInput={dateInput}
+        dueDate={dueDate}
+        timeInput={timeInput}
+        isAnytime={isAnytime}
+        recurrenceChoice={recurrenceChoice}
+        setTitleInput={setTitleInput}
+        onSelectDueDate={onSelectDueDate}
+        setTimeInput={setTimeInput}
+        setIsAnytime={setIsAnytime}
+        setRecurrenceChoice={setRecurrenceChoice}
+        onClose={onCloseForm}
+        onNextStep={onNextFormStep}
+        onSave={onSaveTask}
+        onShowCustomRecurrenceInfo={onShowCustomRecurrenceInfo}
+      />
+
+      <View
+        style={[
+          styles.historyCard,
+          {
+            marginTop: scaleSpacing(spacing.spacious),
+            backgroundColor: ui.cardBackground,
+            borderColor: ui.cardBorder,
+            padding: scaleSpacing(spacing.spacious),
+            marginBottom: scaleSpacing(spacing.spacious),
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.historyTitle,
+            { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) },
+          ]}
         >
-          <Text style={styles.newButtonText}>+ Nova atividade</Text>
-        </TouchableOpacity>
-      )}
-
-      {showForm && (
-        <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Nova atividade</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Título da atividade"
-            placeholderTextColor={colors.textSecondary}
-            value={newTaskTitle}
-            onChangeText={setNewTaskTitle}
-            accessibilityLabel="Título da atividade"
-          />
-          <TextInput
-            style={[styles.input, styles.inputDescription]}
-            placeholder="Descrição (opcional)"
-            placeholderTextColor={colors.textSecondary}
-            value={newTaskDescription}
-            onChangeText={setNewTaskDescription}
-            multiline
-            accessibilityLabel="Descrição da atividade"
-          />
-
-          <View style={styles.formFooter}>
+          Histórico
+        </Text>
+        {showHistoryFilters ? (
+          <View style={[styles.historyFilterRow, { gap: scaleSpacing(spacing.compact), marginBottom: scaleSpacing(spacing.normal) }]}>
             <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => {
-                setShowForm(false);
-                setNewTaskTitle('');
-                setNewTaskDescription('');
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Cancelar criação de atividade"
+              style={[
+                styles.historyFilterButton,
+                { backgroundColor: ui.chipBackground, paddingHorizontal: scaleSpacing(spacing.normal) },
+                historyFilter === 'completed' && styles.historyFilterButtonSelected,
+                historyFilter === 'completed' && { backgroundColor: ui.chipSelectedBackground },
+              ]}
+              onPress={() => setHistoryFilter('completed')}
             >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text
+                style={[
+                  styles.historyFilterText,
+                  { color: ui.chipText, fontSize: scaleFont(fontSizes.small) },
+                  historyFilter === 'completed' && styles.historyFilterTextSelected,
+                  historyFilter === 'completed' && { color: ui.chipSelectedText },
+                ]}
+              >
+                Concluídas
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.saveButton}
-              onPress={onAddTask}
-              accessibilityRole="button"
-              accessibilityLabel="Salvar atividade"
+              style={[
+                styles.historyFilterButton,
+                { backgroundColor: ui.chipBackground, paddingHorizontal: scaleSpacing(spacing.normal) },
+                historyFilter === 'pending' && styles.historyFilterButtonSelected,
+                historyFilter === 'pending' && { backgroundColor: ui.chipSelectedBackground },
+              ]}
+              onPress={() => setHistoryFilter('pending')}
             >
-              <Text style={styles.saveButtonText}>Salvar</Text>
+              <Text
+                style={[
+                  styles.historyFilterText,
+                  { color: ui.chipText, fontSize: scaleFont(fontSizes.small) },
+                  historyFilter === 'pending' && styles.historyFilterTextSelected,
+                  historyFilter === 'pending' && { color: ui.chipSelectedText },
+                ]}
+              >
+                Pendentes
+              </Text>
             </TouchableOpacity>
           </View>
-        </View>
-      )}
+        ) : null}
+
+        {historyItems.length === 0 ? (
+          <Text style={[styles.historyEmpty, { color: ui.textSecondary, fontSize: scaleFont(fontSizes.small + 1) }]}>
+            Sem itens no histórico.
+          </Text>
+        ) : (
+          historyItems.map((item) => (
+            <View
+              key={item.id}
+              style={[
+                styles.historyItem,
+                {
+                  borderTopColor: ui.cardBorder,
+                  paddingTop: scaleSpacing(spacing.normal),
+                  marginTop: scaleSpacing(spacing.normal),
+                },
+              ]}
+            >
+              <View style={[styles.historyInfo, { paddingRight: scaleSpacing(spacing.normal) }]}>
+                <Text style={[styles.historyItemTitle, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.small + 1) }]}>
+                  {item.title}
+                </Text>
+                <Text style={[styles.historyItemMeta, { color: ui.textSecondary, fontSize: scaleFont(fontSizes.small) }]}>
+                  {item.relevantDatePrefix} {item.relevantDateLabel}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.historyStatusChip,
+                  { paddingHorizontal: scaleSpacing(spacing.normal) },
+                  item.statusLabel === 'Concluída' ? styles.historyStatusDone : styles.historyStatusPending,
+                  item.statusLabel === 'Concluída'
+                    ? { backgroundColor: ui.successSurface }
+                    : { backgroundColor: ui.warningSurface },
+                ]}
+              >
+                <Text style={[styles.historyStatusText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.small) }]}>
+                  {item.statusLabel}
+                </Text>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
     </KeyboardAwareFormContainer>
   );
 };
 
 const styles = StyleSheet.create({
   loadingText: {
-    marginTop: spacing.normal,
-    fontSize: fontSizes.medium,
-    color: colors.textSecondary,
   },
   title: {
-    fontSize: fontSizes.extraLarge + 2,
-    color: '#1E1B4B',
     fontWeight: '700',
-    marginBottom: spacing.normal,
   },
   subtitle: {
-    fontSize: fontSizes.medium,
-    color: '#63636B',
-    marginBottom: spacing.spacious,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateNavRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  navigationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dayArrowButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dayArrowSpacer: {
+    width: 44,
+    height: 44,
+  },
+  dayArrowText: {
+    fontWeight: '800',
+  },
+  dayLabelContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayLabelCentered: {
+    textAlign: 'center',
+  },
+  navButton: {
+    borderRadius: 999,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  navButtonText: {
+    fontWeight: '700',
   },
   listContainer: {
-    backgroundColor: '#ECEDEF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D8DADF',
-    padding: spacing.normal,
-    marginBottom: spacing.spacious,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.extraSpacious * 2,
   },
   emptyStateTitle: {
-    fontSize: fontSizes.medium,
     fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.compact,
   },
   emptyStateDescription: {
-    fontSize: fontSizes.small + 1,
-    color: colors.textSecondary,
   },
   newButton: {
     backgroundColor: '#1E2028',
@@ -204,69 +476,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   newButtonText: {
-    color: colors.background,
-    fontSize: fontSizes.medium,
     fontWeight: '700',
   },
-  formCard: {
-    marginTop: spacing.normal,
-    backgroundColor: '#ECEDEF',
+  newButtonCompact: {
+    minHeight: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newTaskButtonRow: {
+    alignItems: 'flex-end',
+  },
+  historyCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D8DADF',
-    padding: spacing.spacious,
   },
-  formTitle: {
-    fontSize: fontSizes.medium,
+  historyTitle: {
     fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.normal,
   },
-  input: {
-    minHeight: 48,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#CFD1D7',
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.normal,
-    paddingVertical: spacing.normal,
-    fontSize: fontSizes.medium,
-    marginBottom: spacing.normal,
-    color: colors.text,
+  historyFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  inputDescription: {
-    minHeight: 84,
-    textAlignVertical: 'top',
+  historyFilterButton: {
+    borderRadius: 999,
+    minHeight: 36,
+    justifyContent: 'center',
   },
-  formFooter: {
+  historyFilterButtonSelected: {
+    backgroundColor: '#4A67F0',
+  },
+  historyFilterText: {
+    fontWeight: '700',
+  },
+  historyFilterTextSelected: {
+    color: '#FFFFFF',
+  },
+  historyEmpty: {
+  },
+  historyItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  cancelButton: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: 10,
-    backgroundColor: '#DADCE2',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.normal,
+    borderTopWidth: 1,
   },
-  cancelButtonText: {
-    color: '#2E3036',
-    fontSize: fontSizes.medium,
+  historyInfo: {
+    flex: 1,
+  },
+  historyItemTitle: {
     fontWeight: '700',
+    marginBottom: 2,
   },
-  saveButton: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: 10,
-    backgroundColor: '#4A67F0',
+  historyItemMeta: {
+  },
+  historyStatusChip: {
+    minHeight: 28,
+    borderRadius: 999,
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  saveButtonText: {
-    color: colors.background,
-    fontSize: fontSizes.medium,
+  historyStatusDone: {
+    backgroundColor: '#CFEEDB',
+  },
+  historyStatusPending: {
+    backgroundColor: '#F2E8B9',
+  },
+  historyStatusText: {
     fontWeight: '700',
   },
 });

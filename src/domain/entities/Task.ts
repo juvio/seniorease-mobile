@@ -6,6 +6,8 @@ export interface TaskStep {
   order: number;
 }
 
+export type TaskRecurrenceType = 'weekly' | 'custom';
+
 export interface Task {
   id: string;
   userId: string;
@@ -18,4 +20,7 @@ export interface Task {
   completedAt?: Date;
   dueDate?: Date;
   reminderTime?: string; // HH:mm format
+  seriesId?: string;
+  recurrenceType?: TaskRecurrenceType;
+  recurrenceIntervalDays?: number;
 }

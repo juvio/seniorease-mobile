@@ -9,6 +9,7 @@ interface TasksState {
   addTask: (task: Task) => void;
   updateTask: (task: Task) => void;
   deleteTask: (taskId: string) => void;
+  deleteTasks: (taskIds: string[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 }
@@ -26,6 +27,10 @@ export const useTasksStore = create<TasksState>((set) => ({
   deleteTask: (taskId) =>
     set((state) => ({
       tasks: state.tasks.filter((t) => t.id !== taskId),
+    })),
+  deleteTasks: (taskIds) =>
+    set((state) => ({
+      tasks: state.tasks.filter((t) => !taskIds.includes(t.id)),
     })),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),

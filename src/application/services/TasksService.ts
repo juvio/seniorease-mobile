@@ -21,7 +21,6 @@ export class TasksService {
   }
 
   async deleteTask(userId: string, taskId: string): Promise<void> {
-    // Implementation would go here
-    throw new Error('Not implemented');
+    await this.tasksRepository.deleteTask(userId, taskId);
   }
 }

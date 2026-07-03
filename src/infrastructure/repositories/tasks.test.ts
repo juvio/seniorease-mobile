@@ -1,4 +1,3 @@
-import { FirebaseTasksRepositoryImpl } from './FirebaseTasksRepositoryImpl';
 import { Task, TaskStep } from '../../domain/entities/Task';
 
 // Mock tests for Tasks
