@@ -58,21 +58,21 @@ describe('AuthService', () => {
       const useCase = new SignupUseCase(mockRepository);
 
       const user = await useCase.execute(
-        'test@example.com',
+        'aluno.fullstack@universidade.edu.br',
         'Password@123',
-        'Test User'
+        'Aluno Full Stack'
       );
 
       expect(user).toBeDefined();
-      expect(user.email).toBe('test@example.com');
-      expect(user.displayName).toBe('Test User');
+      expect(user.email).toBe('aluno.fullstack@universidade.edu.br');
+      expect(user.displayName).toBe('Aluno Full Stack');
     });
 
     it('should reject invalid email', async () => {
       const useCase = new SignupUseCase(mockRepository);
 
       try {
-        await useCase.execute('invalid-email', 'Password@123', 'Test User');
+        await useCase.execute('invalid-email', 'Password@123', 'Aluno Full Stack');
         fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.message).toContain('Email inválido');
@@ -83,7 +83,7 @@ describe('AuthService', () => {
       const useCase = new SignupUseCase(mockRepository);
 
       try {
-        await useCase.execute('test@example.com', 'pass', 'Test User');
+        await useCase.execute('aluno.fullstack@universidade.edu.br', 'pass', 'Aluno Full Stack');
         fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.message).toContain('8 caracteres');
@@ -94,7 +94,7 @@ describe('AuthService', () => {
       const useCase = new SignupUseCase(mockRepository);
 
       try {
-        await useCase.execute('test@example.com', 'Password@123', 'Ana');
+        await useCase.execute('aluno.fullstack@universidade.edu.br', 'Password@123', 'Ana');
         fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.message).toContain('5 caracteres');
@@ -105,13 +105,13 @@ describe('AuthService', () => {
   describe('LoginUseCase', () => {
     it('should login with valid credentials', async () => {
       const mockRepo = new MockAuthRepository();
-      await mockRepo.signup('test@example.com', 'Password@123', 'Test User');
+      await mockRepo.signup('aluno.fullstack@universidade.edu.br', 'Password@123', 'Aluno Full Stack');
 
       const useCase = new LoginUseCase(mockRepo);
-      const user = await useCase.execute('test@example.com', 'Password@123');
+      const user = await useCase.execute('aluno.fullstack@universidade.edu.br', 'Password@123');
 
       expect(user).toBeDefined();
-      expect(user.email).toBe('test@example.com');
+      expect(user.email).toBe('aluno.fullstack@universidade.edu.br');
     });
 
     it('should reject invalid email', async () => {

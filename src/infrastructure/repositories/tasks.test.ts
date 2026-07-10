@@ -6,9 +6,9 @@ describe('TasksRepository', () => {
     it('should create a valid task', () => {
       const task: Task = {
         id: '1',
-        userId: 'user123',
-        title: 'Buy groceries',
-        description: 'Get milk, bread, eggs',
+        userId: 'student-ti-123',
+        title: 'Revisar fundamentos de banco de dados',
+        description: 'Estudar normalizacao e consultas SQL',
         steps: [],
         completed: false,
         createdAt: new Date(),
@@ -16,7 +16,7 @@ describe('TasksRepository', () => {
       };
 
       expect(task).toBeDefined();
-      expect(task.title).toBe('Buy groceries');
+      expect(task.title).toBe('Revisar fundamentos de banco de dados');
       expect(task.completed).toBe(false);
     });
 
@@ -24,15 +24,15 @@ describe('TasksRepository', () => {
       const steps: TaskStep[] = [
         {
           id: '1',
-          title: 'Go to store',
-          description: 'Walk to nearest market',
+          title: 'Ler material de redes',
+          description: 'Revisar modelo OSI e protocolos',
           completed: false,
           order: 1,
         },
         {
           id: '2',
-          title: 'Buy items',
-          description: 'Get items from list',
+          title: 'Resolver exercicios práticos',
+          description: 'Aplicar conceitos em questoes de fixacao',
           completed: false,
           order: 2,
         },
@@ -40,9 +40,9 @@ describe('TasksRepository', () => {
 
       const task: Task = {
         id: '1',
-        userId: 'user123',
-        title: 'Shopping',
-        description: 'Weekly shopping',
+        userId: 'student-ti-123',
+        title: 'Plano de estudo de redes',
+        description: 'Roteiro semanal para redes de computadores',
         steps,
         completed: false,
         createdAt: new Date(),
@@ -50,15 +50,15 @@ describe('TasksRepository', () => {
       };
 
       expect(task.steps).toHaveLength(2);
-      expect(task.steps[0].title).toBe('Go to store');
+      expect(task.steps[0].title).toBe('Ler material de redes');
     });
 
     it('should mark task as completed', () => {
       const task: Task = {
         id: '1',
-        userId: 'user123',
-        title: 'Test task',
-        description: 'A test task',
+        userId: 'student-ti-123',
+        title: 'Praticar algoritmos de ordenacao',
+        description: 'Implementar bubble, merge e quick sort',
         steps: [],
         completed: false,
         createdAt: new Date(),
@@ -79,9 +79,9 @@ describe('TasksRepository', () => {
       const now = new Date();
       const task: Task = {
         id: '1',
-        userId: 'user123',
-        title: 'Timed task',
-        description: 'Task with timestamps',
+        userId: 'student-ti-123',
+        title: 'Sessao de estudo cronometrada',
+        description: 'Bloco focado de estudos com tempo definido',
         steps: [],
         completed: false,
         createdAt: now,
@@ -103,8 +103,8 @@ describe('TasksRepository', () => {
       const tasks: Task[] = [
         {
           id: '1',
-          userId: 'user1',
-          title: 'Task 1',
+          userId: 'student-ti-1',
+          title: 'Concluir exercicios de TypeScript',
           description: 'Done',
           steps: [],
           completed: true,
@@ -113,8 +113,8 @@ describe('TasksRepository', () => {
         },
         {
           id: '2',
-          userId: 'user1',
-          title: 'Task 2',
+          userId: 'student-ti-1',
+          title: 'Revisar padroes de projeto',
           description: 'Pending',
           steps: [],
           completed: false,
@@ -137,8 +137,8 @@ describe('TasksRepository', () => {
       const tasks: Task[] = [
         {
           id: '1',
-          userId: 'user1',
-          title: 'New task',
+          userId: 'student-ti-1',
+          title: 'Praticar exercicios de SQL',
           description: 'Today',
           steps: [],
           completed: false,
@@ -147,8 +147,8 @@ describe('TasksRepository', () => {
         },
         {
           id: '2',
-          userId: 'user1',
-          title: 'Old task',
+          userId: 'student-ti-1',
+          title: 'Ler capitulo de estruturas de dados',
           description: 'Yesterday',
           steps: [],
           completed: false,
@@ -161,8 +161,8 @@ describe('TasksRepository', () => {
         (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
       );
 
-      expect(sorted[0].title).toBe('New task');
-      expect(sorted[1].title).toBe('Old task');
+      expect(sorted[0].title).toBe('Praticar exercicios de SQL');
+      expect(sorted[1].title).toBe('Ler capitulo de estruturas de dados');
     });
   });
 });
