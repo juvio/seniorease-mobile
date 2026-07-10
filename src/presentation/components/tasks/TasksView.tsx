@@ -17,7 +17,7 @@ import { HomeHistoryItem, HomeTaskItem } from '../../hooks/useTasksScreen';
 import { TaskFormModal } from '../shared/TaskFormModal';
 import { useAccessibilityTheme } from '../../hooks/useAccessibilityTheme';
 
-type HistoryFilter = 'completed' | 'pending';
+type HistoryFilter = 'completed' | 'pending' | 'missed';
 type FormStep = 'title' | 'dateTime' | 'recurrence';
 type RecurrenceChoice = 'none' | 'weekly';
 
@@ -96,7 +96,12 @@ export const TasksView: React.FC<TasksViewProps> = ({
   onDeleteTask,
   onShowCustomRecurrenceInfo,
 }) => {
-  const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
+  const { scaleFont, scaleSpacing, fontScale, spacingScale, ui } = useAccessibilityTheme();
+  const isAdaptiveHistoryLayout = spacingScale >= 1.5 || fontScale >= 1.25;
+  const isAdaptiveControlsLayout = spacingScale >= 1.5 || fontScale >= 1.25;
+  const navControlSize = Math.max(40, Math.min(scaleSpacing(spacing.extraSpacious * 2 + 8), 56));
+  const navTitleSize = isAdaptiveControlsLayout ? scaleFont(fontSizes.large) : scaleFont(fontSizes.large + 2);
+  const newTaskButtonMinHeight = Math.max(40, Math.min(scaleSpacing(spacing.extraSpacious * 2), 52));
   const emptyStateTitle = dayTitle === 'Hoje' ? 'Sem tarefas para hoje' : `Sem tarefas para ${dayTitle}`;
 
   if (isLoading) {
@@ -143,15 +148,23 @@ export const TasksView: React.FC<TasksViewProps> = ({
       />
 
       {isSimplifiedMode ? (
-        <View style={[styles.headerRow, { marginBottom: scaleSpacing(spacing.normal), gap: scaleSpacing(spacing.normal) }]}>
-          <Text style={[styles.title, { fontSize: scaleFont(fontSizes.large + 2), color: ui.textPrimary }]}>{dayTitle}</Text>
+        <View
+          style={[
+            styles.headerRow,
+            isAdaptiveControlsLayout && styles.headerRowStacked,
+            { marginBottom: scaleSpacing(spacing.normal), gap: scaleSpacing(spacing.normal) },
+          ]}
+        >
+          <Text style={[styles.title, { fontSize: navTitleSize, color: ui.textPrimary }]}>{dayTitle}</Text>
           {!showForm && (
             <TouchableOpacity
               style={[
                 styles.newButtonCompact,
+                isAdaptiveControlsLayout && styles.newButtonCompactStacked,
                 {
                   backgroundColor: ui.primaryButtonBackground,
                   paddingHorizontal: scaleSpacing(spacing.normal),
+                  minHeight: newTaskButtonMinHeight,
                 },
               ]}
               onPress={() => setShowForm(true)}
@@ -168,7 +181,7 @@ export const TasksView: React.FC<TasksViewProps> = ({
         <View style={[styles.navigationRow, { marginBottom: scaleSpacing(spacing.normal), gap: scaleSpacing(spacing.normal) }]}>
           {showPreviousDayButton ? (
             <TouchableOpacity
-              style={[styles.dayArrowButton, { backgroundColor: ui.chipBackground }]}
+              style={[styles.dayArrowButton, { backgroundColor: ui.chipBackground, width: navControlSize, height: navControlSize, borderRadius: navControlSize / 2 }]}
               onPress={onGoToPreviousDay}
               accessibilityRole="button"
               accessibilityLabel="Ir para o dia anterior com tarefas"
@@ -176,18 +189,21 @@ export const TasksView: React.FC<TasksViewProps> = ({
               <Text style={[styles.dayArrowText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.medium) }]}>{'<'}</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.dayArrowSpacer} />
+            <View style={[styles.dayArrowSpacer, { width: navControlSize, height: navControlSize }]} />
           )}
 
           <View style={styles.dayLabelContainer}>
-            <Text style={[styles.title, styles.dayLabelCentered, { fontSize: scaleFont(fontSizes.large + 2), color: ui.textPrimary }]}>
+            <Text
+              numberOfLines={isAdaptiveControlsLayout ? 2 : 1}
+              style={[styles.title, styles.dayLabelCentered, { fontSize: navTitleSize, color: ui.textPrimary }]}
+            >
               {dayTitle}
             </Text>
           </View>
 
           {showNextDayButton ? (
             <TouchableOpacity
-              style={[styles.dayArrowButton, { backgroundColor: ui.chipBackground }]}
+              style={[styles.dayArrowButton, { backgroundColor: ui.chipBackground, width: navControlSize, height: navControlSize, borderRadius: navControlSize / 2 }]}
               onPress={onGoToNextDay}
               accessibilityRole="button"
               accessibilityLabel="Ir para o próximo dia com tarefas"
@@ -195,7 +211,7 @@ export const TasksView: React.FC<TasksViewProps> = ({
               <Text style={[styles.dayArrowText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.medium) }]}>{'>'}</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.dayArrowSpacer} />
+            <View style={[styles.dayArrowSpacer, { width: navControlSize, height: navControlSize }]} />
           )}
         </View>
       )}
@@ -205,9 +221,11 @@ export const TasksView: React.FC<TasksViewProps> = ({
           <TouchableOpacity
             style={[
               styles.newButtonCompact,
+              isAdaptiveControlsLayout && styles.newButtonCompactStacked,
               {
                 backgroundColor: ui.primaryButtonBackground,
                 paddingHorizontal: scaleSpacing(spacing.normal),
+                minHeight: newTaskButtonMinHeight,
               },
             ]}
             onPress={() => setShowForm(true)}
@@ -225,14 +243,14 @@ export const TasksView: React.FC<TasksViewProps> = ({
           { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary, marginBottom: scaleSpacing(spacing.normal) },
         ]}
       >
-        Suas tarefas do dia selecionado
+        {`Suas tarefas de ${dayTitle.toLowerCase()}`}
       </Text>
 
       <View
         style={[
           styles.listContainer,
           {
-            backgroundColor: ui.cardBackground,
+            backgroundColor: ui.screenBackground,
             borderColor: ui.cardBorder,
             padding: scaleSpacing(spacing.normal),
             marginBottom: scaleSpacing(spacing.spacious),
@@ -258,7 +276,6 @@ export const TasksView: React.FC<TasksViewProps> = ({
             <TaskActivityCard
               key={item.id}
               title={item.title}
-              dateLabel={item.dateLabel}
               timeLabel={item.timeLabel}
               statusLabel={item.statusLabel}
               showOverdueWarning={item.hasOverdueWarning}
@@ -297,7 +314,7 @@ export const TasksView: React.FC<TasksViewProps> = ({
           styles.historyCard,
           {
             marginTop: scaleSpacing(spacing.spacious),
-            backgroundColor: ui.cardBackground,
+            backgroundColor: ui.screenBackground,
             borderColor: ui.cardBorder,
             padding: scaleSpacing(spacing.spacious),
             marginBottom: scaleSpacing(spacing.spacious),
@@ -313,10 +330,17 @@ export const TasksView: React.FC<TasksViewProps> = ({
           Histórico
         </Text>
         {showHistoryFilters ? (
-          <View style={[styles.historyFilterRow, { gap: scaleSpacing(spacing.compact), marginBottom: scaleSpacing(spacing.normal) }]}>
+          <View
+            style={[
+              styles.historyFilterRow,
+              isAdaptiveHistoryLayout && styles.historyFilterRowStacked,
+              { gap: scaleSpacing(spacing.compact), marginBottom: scaleSpacing(spacing.normal) },
+            ]}
+          >
             <TouchableOpacity
               style={[
                 styles.historyFilterButton,
+                isAdaptiveHistoryLayout && styles.historyFilterButtonStacked,
                 { backgroundColor: ui.chipBackground, paddingHorizontal: scaleSpacing(spacing.normal) },
                 historyFilter === 'completed' && styles.historyFilterButtonSelected,
                 historyFilter === 'completed' && { backgroundColor: ui.chipSelectedBackground },
@@ -331,12 +355,13 @@ export const TasksView: React.FC<TasksViewProps> = ({
                   historyFilter === 'completed' && { color: ui.chipSelectedText },
                 ]}
               >
-                Concluídas
+                Concluídos
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.historyFilterButton,
+                isAdaptiveHistoryLayout && styles.historyFilterButtonStacked,
                 { backgroundColor: ui.chipBackground, paddingHorizontal: scaleSpacing(spacing.normal) },
                 historyFilter === 'pending' && styles.historyFilterButtonSelected,
                 historyFilter === 'pending' && { backgroundColor: ui.chipSelectedBackground },
@@ -354,6 +379,27 @@ export const TasksView: React.FC<TasksViewProps> = ({
                 Pendentes
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.historyFilterButton,
+                isAdaptiveHistoryLayout && styles.historyFilterButtonStacked,
+                { backgroundColor: ui.chipBackground, paddingHorizontal: scaleSpacing(spacing.normal) },
+                historyFilter === 'missed' && styles.historyFilterButtonSelected,
+                historyFilter === 'missed' && { backgroundColor: ui.chipSelectedBackground },
+              ]}
+              onPress={() => setHistoryFilter('missed')}
+            >
+              <Text
+                style={[
+                  styles.historyFilterText,
+                  { color: ui.chipText, fontSize: scaleFont(fontSizes.small) },
+                  historyFilter === 'missed' && styles.historyFilterTextSelected,
+                  historyFilter === 'missed' && { color: ui.chipSelectedText },
+                ]}
+              >
+                Não concluídos
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : null}
 
@@ -367,6 +413,7 @@ export const TasksView: React.FC<TasksViewProps> = ({
               key={item.id}
               style={[
                 styles.historyItem,
+                isAdaptiveHistoryLayout && styles.historyItemStacked,
                 {
                   borderTopColor: ui.cardBorder,
                   paddingTop: scaleSpacing(spacing.normal),
@@ -374,25 +421,53 @@ export const TasksView: React.FC<TasksViewProps> = ({
                 },
               ]}
             >
-              <View style={[styles.historyInfo, { paddingRight: scaleSpacing(spacing.normal) }]}>
+              <View
+                style={[
+                  styles.historyInfo,
+                  {
+                    paddingRight: isAdaptiveHistoryLayout ? 0 : scaleSpacing(spacing.normal),
+                    marginBottom: isAdaptiveHistoryLayout ? scaleSpacing(spacing.compact) : 0,
+                  },
+                ]}
+              >
                 <Text style={[styles.historyItemTitle, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.small + 1) }]}>
                   {item.title}
                 </Text>
                 <Text style={[styles.historyItemMeta, { color: ui.textSecondary, fontSize: scaleFont(fontSizes.small) }]}>
-                  {item.relevantDatePrefix} {item.relevantDateLabel}
+                  {item.relevantDatePrefix}{' '}
+                  <Text style={styles.historyItemMetaDate}>{item.relevantDateLabel}</Text>
                 </Text>
               </View>
               <View
                 style={[
                   styles.historyStatusChip,
-                  { paddingHorizontal: scaleSpacing(spacing.normal) },
-                  item.statusLabel === 'Concluída' ? styles.historyStatusDone : styles.historyStatusPending,
-                  item.statusLabel === 'Concluída'
+                  isAdaptiveHistoryLayout && styles.historyStatusChipStacked,
+                  {
+                    paddingHorizontal: scaleSpacing(spacing.normal),
+                    borderWidth: item.statusLabel === 'Não concluído' ? 1 : 0,
+                    borderColor: item.statusLabel === 'Não concluído' ? ui.dangerBorder : 'transparent',
+                  },
+                  item.statusLabel === 'Concluído'
+                    ? styles.historyStatusDone
+                    : item.statusLabel === 'Não concluído'
+                      ? styles.historyStatusMissed
+                      : styles.historyStatusPending,
+                  item.statusLabel === 'Concluído'
                     ? { backgroundColor: ui.successSurface }
-                    : { backgroundColor: ui.warningSurface },
+                    : item.statusLabel === 'Não concluído'
+                      ? { backgroundColor: ui.dangerSurface }
+                      : { backgroundColor: ui.warningSurface },
                 ]}
               >
-                <Text style={[styles.historyStatusText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.small) }]}>
+                <Text
+                  style={[
+                    styles.historyStatusText,
+                    {
+                      color: item.statusLabel === 'Não concluído' ? ui.dangerText : ui.textPrimary,
+                      fontSize: scaleFont(fontSizes.small),
+                    },
+                  ]}
+                >
                   {item.statusLabel}
                 </Text>
               </View>
@@ -416,6 +491,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerRowStacked: {
+    alignItems: 'stretch',
+    flexWrap: 'wrap',
   },
   dateNavRow: {
     flexDirection: 'row',
@@ -484,6 +563,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  newButtonCompactStacked: {
+    alignSelf: 'stretch',
+  },
   newTaskButtonRow: {
     alignItems: 'flex-end',
   },
@@ -498,10 +580,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
+  historyFilterRowStacked: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
   historyFilterButton: {
     borderRadius: 999,
     minHeight: 36,
     justifyContent: 'center',
+  },
+  historyFilterButtonStacked: {
+    alignItems: 'center',
   },
   historyFilterButtonSelected: {
     backgroundColor: '#4A67F0',
@@ -520,6 +609,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
   },
+  historyItemStacked: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
   historyInfo: {
     flex: 1,
   },
@@ -529,16 +622,25 @@ const styles = StyleSheet.create({
   },
   historyItemMeta: {
   },
+  historyItemMetaDate: {
+    fontWeight: '700',
+  },
   historyStatusChip: {
     minHeight: 28,
     borderRadius: 999,
     justifyContent: 'center',
+  },
+  historyStatusChipStacked: {
+    alignSelf: 'flex-start',
   },
   historyStatusDone: {
     backgroundColor: '#CFEEDB',
   },
   historyStatusPending: {
     backgroundColor: '#F2E8B9',
+  },
+  historyStatusMissed: {
+    backgroundColor: '#FDECEC',
   },
   historyStatusText: {
     fontWeight: '700',

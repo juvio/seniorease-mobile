@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert } from 'react-native';
 import { Task } from '../../domain/entities/Task';
+import { showAppAlert } from '../../shared/stores/alertStore';
 import { useSettings } from './useSettings';
 import { useTasks } from './useTasks';
 
 export interface HomeTaskItem {
   id: string;
   title: string;
-  dateLabel: string;
   timeLabel?: string;
-  statusLabel: 'Concluída' | 'Pendente';
+  statusLabel: 'Concluído' | 'Pendente' | 'Não concluído';
   hasOverdueWarning: boolean;
   overdueWarningText?: string;
   isCompleted: boolean;
@@ -21,16 +20,18 @@ export interface HomeHistoryItem {
   id: string;
   title: string;
   relevantDateLabel: string;
-  relevantDatePrefix: 'Agendado para' | 'Concluída em';
-  statusLabel: 'Concluída' | 'Pendente';
+  relevantDatePrefix: 'Agendado para' | 'Concluído em';
+  statusLabel: 'Concluído' | 'Pendente' | 'Não concluído';
 }
 
-type HistoryFilter = 'completed' | 'pending';
+type HistoryFilter = 'completed' | 'pending' | 'missed';
 type DeleteScope = 'single' | 'future';
 type FormStep = 'title' | 'dateTime' | 'recurrence';
 type RecurrenceChoice = 'none' | 'weekly';
+type TaskStatusLabel = HomeTaskItem['statusLabel'];
 
-const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const startOfDay = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 const addDays = (date: Date, days: number) => {
   const next = new Date(date);
@@ -54,7 +55,9 @@ const parseTaskDate = (task: Task) => {
 };
 
 const isSameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
 
 const formatDate = (date: Date) => date.toLocaleDateString('pt-BR');
 
@@ -90,7 +93,8 @@ const parseDateString = (value: string): Date | null => {
   return normalizeDateOnly(parsed);
 };
 
-const isPastDate = (date: Date) => startOfDay(date).getTime() < startOfDay(new Date()).getTime();
+const isPastDate = (date: Date) =>
+  startOfDay(date).getTime() < startOfDay(new Date()).getTime();
 
 const buildTaskDateTime = (task: Task) => {
   const baseDate = parseTaskDate(task);
@@ -109,6 +113,16 @@ const buildTaskDateTime = (task: Task) => {
   }
 
   return date;
+};
+
+const getTaskDay = (task: Task) => startOfDay(parseTaskDate(task));
+
+const getTaskStatusLabel = (task: Task, todayStart: Date): TaskStatusLabel => {
+  if (task.completed) {
+    return 'Concluído';
+  }
+
+  return getTaskDay(task).getTime() < todayStart.getTime() ? 'Não concluído' : 'Pendente';
 };
 
 const buildSummary = (
@@ -136,7 +150,15 @@ const buildSummary = (
 };
 
 export const useTasksScreen = () => {
-  const { tasks, loading, addTask, updateTask, deleteTask, deleteTasks, loadTasks } = useTasks();
+  const {
+    tasks,
+    loading,
+    addTask,
+    updateTask,
+    deleteTask,
+    deleteTasks,
+    loadTasks,
+  } = useTasks();
   const { settings, loading: settingsLoading, loadSettings } = useSettings();
 
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
@@ -147,7 +169,8 @@ export const useTasksScreen = () => {
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [timeInput, setTimeInput] = useState('');
   const [isAnytime, setIsAnytime] = useState(true);
-  const [recurrenceChoice, setRecurrenceChoice] = useState<RecurrenceChoice>('none');
+  const [recurrenceChoice, setRecurrenceChoice] =
+    useState<RecurrenceChoice>('none');
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('pending');
   const [toast, setToast] = useState<{
     visible: boolean;
@@ -161,8 +184,12 @@ export const useTasksScreen = () => {
   }, [loadSettings, loadTasks]);
 
   const isSimplifiedMode = settings?.accessibility.interfaceMode === 'basic';
-  const reinforcedFeedback = Boolean(settings?.accessibility.reinforcedFeedback);
-  const confirmCriticalActions = Boolean(settings?.accessibility.confirmCriticalActions);
+  const reinforcedFeedback = Boolean(
+    settings?.accessibility.reinforcedFeedback,
+  );
+  const confirmCriticalActions = Boolean(
+    settings?.accessibility.confirmCriticalActions,
+  );
 
   useEffect(() => {
     if (isSimplifiedMode) {
@@ -189,18 +216,30 @@ export const useTasksScreen = () => {
   }, []);
 
   const closeForm = useCallback(() => {
-    const hasDraft = titleInput.trim() || dateInput.trim() || timeInput.trim() || dueDate;
+    const hasDraft =
+      titleInput.trim() || dateInput.trim() || timeInput.trim() || dueDate;
 
     if (confirmCriticalActions && hasDraft) {
-      Alert.alert('Sair sem salvar', 'Você tem alterações não salvas. Deseja sair mesmo?', [
-        { text: 'Continuar editando', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: resetFormState },
-      ]);
+      showAppAlert({
+        title: 'Sair sem salvar',
+        message: 'Você tem alterações não salvas. Deseja sair mesmo?',
+        actions: [
+          { text: 'Continuar editando', style: 'cancel' },
+          { text: 'Sair', style: 'destructive', onPress: resetFormState },
+        ],
+      });
       return;
     }
 
     resetFormState();
-  }, [confirmCriticalActions, dateInput, dueDate, resetFormState, timeInput, titleInput]);
+  }, [
+    confirmCriticalActions,
+    dateInput,
+    dueDate,
+    resetFormState,
+    timeInput,
+    titleInput,
+  ]);
 
   const submitTask = useCallback(async () => {
     if (!titleInput.trim()) {
@@ -223,7 +262,9 @@ export const useTasksScreen = () => {
 
     const reminderTime = isAnytime ? undefined : timeInput.trim() || undefined;
     const recurrenceType = recurrenceChoice === 'weekly' ? 'weekly' : undefined;
-    const seriesId = recurrenceType ? `${Date.now()}-${Math.random().toString(16).slice(2)}` : undefined;
+    const seriesId = recurrenceType
+      ? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+      : undefined;
 
     const executeSave = async () => {
       try {
@@ -239,25 +280,30 @@ export const useTasksScreen = () => {
         resetFormState();
         notify('success', 'Tarefa criada com sucesso.');
       } catch (error) {
-        notify('error', error instanceof Error ? error.message : 'Não foi possível criar a tarefa.');
+        notify(
+          'error',
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível criar a tarefa.',
+        );
       }
     };
 
     if (confirmCriticalActions) {
-      Alert.alert(
-        'Confirmar tarefa',
-        `Deseja realmente salvar?\n\n${buildSummary(
+      showAppAlert({
+        title: 'Confirmar tarefa',
+        message: `Deseja realmente salvar?\n\n${buildSummary(
           titleInput.trim(),
           dueDate,
           reminderTime || '',
           recurrenceChoice,
           !(isSimplifiedMode && recurrenceChoice === 'none'),
         )}`,
-        [
+        actions: [
           { text: 'Cancelar', style: 'cancel' },
           { text: 'Salvar', onPress: () => void executeSave() },
         ],
-      );
+      });
       return;
     }
 
@@ -280,11 +326,13 @@ export const useTasksScreen = () => {
       if (!task.recurrenceType || !task.seriesId) return;
 
       const currentDate = parseTaskDate(task);
-      const daysInterval = task.recurrenceType === 'weekly' ? 7 : task.recurrenceIntervalDays || 7;
+      const daysInterval =
+        task.recurrenceType === 'weekly' ? 7 : task.recurrenceIntervalDays || 7;
       const nextDate = addDays(currentDate, daysInterval);
 
       const alreadyExists = tasks.some((item) => {
-        if (item.seriesId !== task.seriesId || item.id === task.id) return false;
+        if (item.seriesId !== task.seriesId || item.id === task.id)
+          return false;
         return (
           isSameDay(parseTaskDate(item), nextDate) &&
           (item.reminderTime || '') === (task.reminderTime || '')
@@ -309,21 +357,42 @@ export const useTasksScreen = () => {
     async (task: Task) => {
       if (task.completed) return;
 
+      const todayStart = startOfDay(new Date());
+      const isPastTask = getTaskDay(task).getTime() < todayStart.getTime();
+
+      if (isPastTask) {
+        notify('warning', 'Tarefas de dias passados não podem ser marcadas como feitas.');
+        return;
+      }
+
       const execute = async () => {
         try {
-          await updateTask({ ...task, completed: true, completedAt: new Date() });
+          await updateTask({
+            ...task,
+            completed: true,
+            completedAt: new Date(),
+          });
           await createNextRecurringOccurrence(task);
           notify('success', 'Muito bem. Você concluiu esta tarefa.');
         } catch (error) {
-          notify('error', error instanceof Error ? error.message : 'Não foi possível concluir a tarefa.');
+          notify(
+            'error',
+            error instanceof Error
+              ? error.message
+              : 'Não foi possível concluir a tarefa.',
+          );
         }
       };
 
       if (confirmCriticalActions) {
-        Alert.alert('Confirmar conclusão', 'Confirmar conclusão desta tarefa?', [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Confirmar', onPress: () => void execute() },
-        ]);
+        showAppAlert({
+          title: 'Confirmar conclusão',
+          message: 'Confirmar conclusão desta tarefa?',
+          actions: [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Confirmar', onPress: () => void execute() },
+          ],
+        });
         return;
       }
 
@@ -350,7 +419,12 @@ export const useTasksScreen = () => {
         await deleteTasks(taskIds);
         notify('success', 'Tarefa e próximas excluídas.');
       } catch (error) {
-        notify('error', error instanceof Error ? error.message : 'Não foi possível excluir a tarefa.');
+        notify(
+          'error',
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível excluir a tarefa.',
+        );
       }
     },
     [deleteTask, deleteTasks, notify, tasks],
@@ -358,29 +432,39 @@ export const useTasksScreen = () => {
 
   const deleteWithRequiredConfirmations = useCallback(
     (task: Task) => {
-      Alert.alert('Excluir tarefa', 'Deseja realmente excluir esta tarefa?', [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: () => {
-            if (!task.seriesId || !task.recurrenceType) {
-              void applyDelete(task, 'single');
-              return;
-            }
+      showAppAlert({
+        title: 'Excluir tarefa',
+        message: 'Deseja realmente excluir esta tarefa?',
+        actions: [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Excluir',
+            style: 'destructive',
+            onPress: () => {
+              if (!task.seriesId || !task.recurrenceType) {
+                void applyDelete(task, 'single');
+                return;
+              }
 
-            Alert.alert(
-              'Escopo da recorrência',
-              'O que deseja excluir? Só esta tarefa ou Esta e as próximas?',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Só esta', onPress: () => void applyDelete(task, 'single') },
-                { text: 'Esta e próximas', onPress: () => void applyDelete(task, 'future') },
-              ],
-            );
+              showAppAlert({
+                title: 'Escopo da recorrência',
+                message: 'O que deseja excluir? Só esta tarefa ou Esta e as próximas?',
+                actions: [
+                  { text: 'Cancelar', style: 'cancel' },
+                  {
+                    text: 'Só esta',
+                    onPress: () => void applyDelete(task, 'single'),
+                  },
+                  {
+                    text: 'Esta e próximas',
+                    onPress: () => void applyDelete(task, 'future'),
+                  },
+                ],
+              });
+            },
           },
-        },
-      ]);
+        ],
+      });
     },
     [applyDelete],
   );
@@ -392,15 +476,21 @@ export const useTasksScreen = () => {
       unique.add(startOfDay(parseTaskDate(task)).toISOString());
     });
 
-    return [...unique].map((value) => new Date(value)).sort((a, b) => a.getTime() - b.getTime());
+    return [...unique]
+      .map((value) => new Date(value))
+      .sort((a, b) => a.getTime() - b.getTime());
   }, [tasks]);
 
   const navigableDates = useMemo(() => {
     const today = startOfDay(new Date());
-    const unique = new Set(allTaskDates.map((date) => startOfDay(date).toISOString()));
+    const unique = new Set(
+      allTaskDates.map((date) => startOfDay(date).toISOString()),
+    );
     unique.add(today.toISOString());
 
-    return [...unique].map((value) => new Date(value)).sort((a, b) => a.getTime() - b.getTime());
+    return [...unique]
+      .map((value) => new Date(value))
+      .sort((a, b) => a.getTime() - b.getTime());
   }, [allTaskDates]);
 
   const previousTaskDate = useMemo(() => {
@@ -440,20 +530,25 @@ export const useTasksScreen = () => {
 
   const homeTasks = useMemo<HomeTaskItem[]>(() => {
     const now = new Date();
+    const todayStart = startOfDay(now);
 
     return dayTasks.map((task) => {
-      const taskDate = parseTaskDate(task);
-      const isOverdue =
-        !task.completed && Boolean(task.reminderTime) && buildTaskDateTime(task).getTime() < now.getTime();
+      const statusLabel = getTaskStatusLabel(task, todayStart);
+      const isPastPending = statusLabel === 'Não concluído';
+      const hasReminderTime = Boolean(task.reminderTime);
+      const isTimeOverdue =
+        !task.completed &&
+        hasReminderTime &&
+        buildTaskDateTime(task).getTime() < now.getTime();
+      const overdueWarningText = isTimeOverdue ? 'Passou do horário' : undefined;
 
       return {
         id: task.id,
         title: task.title,
-        dateLabel: formatDate(taskDate),
         timeLabel: task.reminderTime || undefined,
-        statusLabel: task.completed ? 'Concluída' : 'Pendente',
-        hasOverdueWarning: isOverdue,
-        overdueWarningText: isOverdue ? 'Horário previsto já passou.' : undefined,
+        statusLabel,
+        hasOverdueWarning: !isPastPending && isTimeOverdue,
+        overdueWarningText: isPastPending ? undefined : overdueWarningText,
         isCompleted: task.completed,
         isRecurring: Boolean(task.recurrenceType),
         sourceTask: task,
@@ -462,29 +557,52 @@ export const useTasksScreen = () => {
   }, [dayTasks]);
 
   const historyItems = useMemo<HomeHistoryItem[]>(() => {
+    const todayStart = startOfDay(new Date());
+
     const filtered = tasks.filter((task) => {
-      if (historyFilter === 'completed') return task.completed;
-      return !task.completed;
+      if (isSimplifiedMode) {
+        return true;
+      }
+
+      const statusLabel = getTaskStatusLabel(task, todayStart);
+
+      if (historyFilter === 'completed') {
+        return statusLabel === 'Concluído';
+      }
+
+      if (historyFilter === 'missed') {
+        return statusLabel === 'Não concluído';
+      }
+
+      return statusLabel === 'Pendente';
     });
 
     const getRelevantDate = (task: Task) => {
       if (task.completed) {
-        return task.completedAt instanceof Date ? task.completedAt : task.updatedAt;
+        return task.completedAt instanceof Date
+          ? task.completedAt
+          : task.updatedAt;
       }
 
       return parseTaskDate(task);
     };
 
     return filtered
-      .sort((a, b) => getRelevantDate(b).getTime() - getRelevantDate(a).getTime())
-      .map((task) => ({
-        id: task.id,
-        title: task.title,
-        relevantDateLabel: formatDate(getRelevantDate(task)),
-        relevantDatePrefix: task.completed ? 'Concluída em' : 'Agendado para',
-        statusLabel: task.completed ? 'Concluída' : 'Pendente',
-      }));
-  }, [historyFilter, tasks]);
+      .sort(
+        (a, b) => getRelevantDate(b).getTime() - getRelevantDate(a).getTime(),
+      )
+      .map((task) => {
+        const statusLabel = getTaskStatusLabel(task, todayStart);
+
+        return {
+          id: task.id,
+          title: task.title,
+          relevantDateLabel: formatDate(getRelevantDate(task)),
+          relevantDatePrefix: task.completed ? 'Concluído em' : 'Agendado para',
+          statusLabel,
+        };
+      });
+  }, [historyFilter, isSimplifiedMode, tasks]);
 
   const dayTitle = useMemo(() => {
     const today = startOfDay(new Date());
@@ -587,6 +705,9 @@ export const useTasksScreen = () => {
     onCompleteTask: completeTask,
     onDeleteTask: deleteWithRequiredConfirmations,
     onShowCustomRecurrenceInfo: () =>
-      Alert.alert('Recorrência personalizada', 'Esta opção estará disponível em breve.'),
+      showAppAlert({
+        title: 'Recorrência personalizada',
+        message: 'Esta opção estará disponível em breve.',
+      }),
   };
 };

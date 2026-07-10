@@ -1,9 +1,7 @@
 import React from 'react';
 import {
-  Keyboard,
   KeyboardAvoidingView,
   Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -141,7 +139,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             color: ui.textPrimary,
                           },
                         ]}
-                        placeholder="Ex: Tomar remédio"
+                        placeholder="Ex: Estudar para a prova"
                         placeholderTextColor={ui.textSecondary}
                         value={titleInput}
                         onChangeText={setTitleInput}

@@ -10,7 +10,7 @@ export const FONT_SCALE_BY_SIZE: Record<AccessibilitySettings['fontSize'], numbe
 };
 
 export const SPACING_SCALE_BY_SIZE: Record<AccessibilitySettings['spacing'], number> = {
-  compact: 0.5,
+  compact: 0.75,
   normal: 1,
   spacious: 1.5,
   'extra-spacious': 2,
