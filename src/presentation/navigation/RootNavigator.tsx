@@ -1,13 +1,13 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text as RNText, StyleProp, TextStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthScreen } from '../screens/AuthScreen';
 import { TasksScreen } from '../screens/TasksScreen';
 import { PersonalizationScreen } from '../screens/PersonalizationScreen';
 import { useAccessibilityTheme } from '../hooks/useAccessibilityTheme';
+import { AppAlertModal } from '../components/shared/AppAlertModal';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -25,27 +25,36 @@ const HomeStack = () => {
 };
 
 const AppTabs = () => {
-  const { ui, scaleFont, scaleSpacing } = useAccessibilityTheme();
+  const { ui, scaleFont, fontScale } = useAccessibilityTheme();
   const insets = useSafeAreaInsets();
-  const tabBarBottomPadding = Math.max(insets.bottom, scaleSpacing(8));
+  const isAdaptiveMenuLayout = fontScale >= 1.25;
+  const tabBarBottomPadding = Math.max(insets.bottom, 8);
+  const tabBarIconSize = Math.max(18, Math.min(isAdaptiveMenuLayout ? scaleFont(19) : scaleFont(22), 24));
+  const tabBarLabelSize = isAdaptiveMenuLayout ? scaleFont(11) : scaleFont(12);
+  const tabBarHeight = Math.max((isAdaptiveMenuLayout ? 64 : 56) + tabBarBottomPadding, 56 + insets.bottom);
 
   return (
     <Tab.Navigator
-      sceneContainerStyle={{ backgroundColor: ui.screenBackground }}
       screenOptions={{
         headerShown: false,
+        sceneStyle: {
+          backgroundColor: ui.screenBackground,
+        },
         tabBarStyle: {
-          height: scaleSpacing(56) + tabBarBottomPadding,
+          height: tabBarHeight,
           paddingBottom: tabBarBottomPadding,
-          paddingTop: scaleSpacing(4),
+          paddingTop: isAdaptiveMenuLayout ? 6 : 4,
           backgroundColor: ui.screenBackground,
           borderTopColor: ui.cardBorder,
         },
         tabBarActiveTintColor: ui.chipSelectedBackground,
         tabBarInactiveTintColor: ui.textSecondary,
+        tabBarItemStyle: {
+          paddingHorizontal: 2,
+        },
         tabBarLabelStyle: {
-          fontSize: scaleFont(12),
-          marginBottom: scaleSpacing(4),
+          fontSize: tabBarLabelSize,
+          marginBottom: isAdaptiveMenuLayout ? 2 : 4,
         },
       }}
     >
@@ -55,7 +64,7 @@ const AppTabs = () => {
         options={{
           title: 'Home',
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: scaleFont(24), color }}>✓</Text>,
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={tabBarIconSize} color={color} />,
         }}
       />
       <Tab.Screen
@@ -64,7 +73,7 @@ const AppTabs = () => {
         options={{
           title: 'Configurações',
           tabBarLabel: 'Configurações',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: scaleFont(24), color }}>⚙️</Text>,
+          tabBarIcon: ({ color }) => <Ionicons name="settings" size={tabBarIconSize} color={color} />,
         }}
       />
     </Tab.Navigator>
@@ -89,11 +98,7 @@ export const RootNavigator = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           </Stack.Group>
         )}
       </Stack.Navigator>
+      <AppAlertModal />
     </NavigationContainer>
   );
-};
-
-// Helper to show icon text
-const Text = ({ children, style }: { children: React.ReactNode; style?: StyleProp<TextStyle> }) => {
-  return <RNText style={style}>{children}</RNText>;
 };

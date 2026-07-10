@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { Alert } from 'react-native';
+import { showAppAlert } from '../../shared/stores/alertStore';
 import { useAuth } from './useAuth';
 
 interface ProfileScreenHookParams {
@@ -26,25 +26,32 @@ export const useProfileScreen = ({ onLogout }: ProfileScreenHookParams) => {
   const { user, loading, logout } = useAuth();
 
   const handleLogout = useCallback(() => {
-    Alert.alert('Sair da conta', 'Tem certeza que deseja sair?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Sair',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await logout();
-            onLogout?.();
-          } catch (error) {
-            Alert.alert('Erro', 'Nao foi possivel fazer logout');
-          }
+    showAppAlert({
+      title: 'Sair da conta',
+      message: 'Tem certeza que deseja sair?',
+      actions: [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              onLogout?.();
+            } catch (error) {
+              showAppAlert({ title: 'Erro', message: 'Nao foi possivel fazer logout' });
+            }
+          },
         },
-      },
-    ]);
+      ],
+    });
   }, [logout, onLogout]);
 
   const handlePlaceholderAction = useCallback((label: string) => {
-    Alert.alert('Em desenvolvimento', `${label} estara disponivel em breve.`);
+    showAppAlert({
+      title: 'Em desenvolvimento',
+      message: `${label} estara disponivel em breve.`,
+    });
   }, []);
 
   const actions = useMemo<ProfileActionItem[]>(
