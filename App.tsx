@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { RootNavigator } from './src/presentation/navigation/RootNavigator';
 import { useAuthStore } from './src/shared/stores/authStore';
 import { useSettingsStore } from './src/shared/stores/settingsStore';
-import { AuthService } from './src/application/services/AuthService';
 import { SettingsService } from './src/application/services/SettingsService';
+import { auth, db } from './src/infrastructure/firebase/config';
 import { colors } from './src/shared/constants/theme';
 
 export default function App() {
@@ -14,32 +16,39 @@ export default function App() {
   const [appLoading, setAppLoading] = useState(true);
 
   useEffect(() => {
-    initializeApp();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        if (firebaseUser) {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          const userData = userDoc.data();
 
-  const initializeApp = async () => {
-    try {
-      const authService = new AuthService();
-      const currentUser = await authService.getCurrentUser();
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: userData?.displayName ?? 'Usuário',
+            createdAt: userData?.createdAt?.toDate() ?? new Date(),
+            updatedAt: userData?.updatedAt?.toDate() ?? new Date(),
+          });
 
-      if (currentUser) {
-        setUser(currentUser);
-
-        // Load user settings
-        const settingsService = new SettingsService();
-        try {
-          const settings = await settingsService.getSettings(currentUser.id);
-          setSettings(settings);
-        } catch {
-          // Defaults can be created after login if no settings were found.
+          const settingsService = new SettingsService();
+          try {
+            const settings = await settingsService.getSettings(firebaseUser.uid);
+            setSettings(settings);
+          } catch {
+            // Defaults can be created after login if no settings were found.
+          }
+        } else {
+          setUser(null);
         }
+      } catch (error) {
+        console.error('Error restoring auth state:', error);
+      } finally {
+        setAppLoading(false);
       }
-    } catch (error) {
-      console.error('Error initializing app:', error);
-    } finally {
-      setAppLoading(false);
-    }
-  };
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   if (appLoading) {
     return (
