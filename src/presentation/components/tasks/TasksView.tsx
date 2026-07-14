@@ -346,6 +346,9 @@ export const TasksView: React.FC<TasksViewProps> = ({
                 historyFilter === 'completed' && { backgroundColor: ui.chipSelectedBackground },
               ]}
               onPress={() => setHistoryFilter('completed')}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: historyFilter === 'completed' }}
+              accessibilityLabel="Filtrar historico por concluidos"
             >
               <Text
                 style={[
@@ -367,6 +370,9 @@ export const TasksView: React.FC<TasksViewProps> = ({
                 historyFilter === 'pending' && { backgroundColor: ui.chipSelectedBackground },
               ]}
               onPress={() => setHistoryFilter('pending')}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: historyFilter === 'pending' }}
+              accessibilityLabel="Filtrar historico por pendentes"
             >
               <Text
                 style={[
@@ -388,6 +394,9 @@ export const TasksView: React.FC<TasksViewProps> = ({
                 historyFilter === 'missed' && { backgroundColor: ui.chipSelectedBackground },
               ]}
               onPress={() => setHistoryFilter('missed')}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: historyFilter === 'missed' }}
+              accessibilityLabel="Filtrar historico por nao concluidos"
             >
               <Text
                 style={[

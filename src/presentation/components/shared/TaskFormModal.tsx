@@ -212,7 +212,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         <Text style={[styles.switchText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.small + 1) }]}>
                           A qualquer momento do dia
                         </Text>
-                        <Switch value={isAnytime} onValueChange={handleAnytimeChange} />
+                        <Switch
+                          value={isAnytime}
+                          onValueChange={handleAnytimeChange}
+                          accessibilityLabel="Alternar tarefa para qualquer horario"
+                        />
                       </View>
                     </View>
                   ) : null}
@@ -243,6 +247,9 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             recurrenceChoice === 'none' && { backgroundColor: ui.chipSelectedBackground },
                           ]}
                           onPress={() => setRecurrenceChoice('none')}
+                          accessibilityRole="radio"
+                          accessibilityState={{ selected: recurrenceChoice === 'none' }}
+                          accessibilityLabel="Recorrencia nao"
                         >
                           <Text
                             style={[
@@ -267,6 +274,9 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             recurrenceChoice === 'weekly' && { backgroundColor: ui.chipSelectedBackground },
                           ]}
                           onPress={() => setRecurrenceChoice('weekly')}
+                          accessibilityRole="radio"
+                          accessibilityState={{ selected: recurrenceChoice === 'weekly' }}
+                          accessibilityLabel="Recorrencia semanal"
                         >
                           <Text
                             style={[
@@ -283,6 +293,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         <TouchableOpacity
                           style={[styles.choiceButton, { backgroundColor: ui.chipBackground, paddingHorizontal: scaleSpacing(spacing.normal) }]}
                           onPress={onShowCustomRecurrenceInfo}
+                          accessibilityRole="button"
+                          accessibilityLabel="Recorrencia personalizada"
                         >
                           <Text style={[styles.choiceText, { color: ui.chipText, fontSize: scaleFont(fontSizes.small + 1) }]}>Personalizada</Text>
                         </TouchableOpacity>
@@ -306,6 +318,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 <TouchableOpacity
                   style={[styles.cancelButton, { backgroundColor: ui.chipBackground }]}
                   onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cancelar criacao de tarefa"
                 >
                   <Text
                     style={[
@@ -319,6 +333,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 <TouchableOpacity
                   style={[styles.saveButton, { backgroundColor: ui.chipSelectedBackground }]}
                   onPress={formStep === 'recurrence' ? onSave : onNextStep}
+                  accessibilityRole="button"
+                  accessibilityLabel={submitLabel === 'Salvar' ? 'Salvar tarefa' : 'Continuar para proxima etapa'}
                 >
                   <Text style={[styles.saveButtonText, { color: ui.chipSelectedText, fontSize: scaleFont(fontSizes.medium) }]}>
                     {submitLabel}

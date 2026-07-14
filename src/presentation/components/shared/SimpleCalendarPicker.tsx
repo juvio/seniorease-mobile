@@ -131,7 +131,12 @@ export const SimpleCalendarPicker: React.FC<SimpleCalendarPickerProps> = ({
         <Text style={[styles.monthLabel, { fontSize: scaleFont(fontSizes.small + 2), color: ui.textPrimary }]}>
           {`${MONTH_NAMES[displayMonth]} ${displayYear}`}
         </Text>
-        <TouchableOpacity style={[styles.navButton, { backgroundColor: ui.chipBackground }]} onPress={goToNextMonth}>
+        <TouchableOpacity
+          style={[styles.navButton, { backgroundColor: ui.chipBackground }]}
+          onPress={goToNextMonth}
+          accessibilityRole="button"
+          accessibilityLabel="Próximo mês"
+        >
           <Text style={[styles.navButtonText, { color: ui.textPrimary, fontSize: scaleFont(fontSizes.medium) }]}>{'>'}</Text>
         </TouchableOpacity>
       </View>
