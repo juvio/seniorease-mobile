@@ -1,6 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { AuthService } from '../../application/services/AuthService';
 import { SettingsService } from '../../application/services/SettingsService';
+import { FirebaseAuthRepository } from '../../infrastructure/repositories/FirebaseAuthRepository';
+import { FirebaseSettingsRepository } from '../../infrastructure/repositories/FirebaseSettingsRepository';
 import { useAuthStore } from '../../shared/stores/authStore';
 import { useSettingsStore } from '../../shared/stores/settingsStore';
 
@@ -30,8 +32,8 @@ export const useAuth = () => {
   const authStore = useAuthStore();
   const settingsStore = useSettingsStore();
 
-  const authService = new AuthService();
-  const settingsService = new SettingsService();
+  const authService = useRef(new AuthService(new FirebaseAuthRepository())).current;
+  const settingsService = useRef(new SettingsService(new FirebaseSettingsRepository())).current;
 
   const signup = useCallback(
     async (email: string, password: string, displayName: string) => {

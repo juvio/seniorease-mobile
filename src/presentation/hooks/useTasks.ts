@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { TasksService } from '../../application/services/TasksService';
+import { FirebaseTasksRepositoryImpl } from '../../infrastructure/repositories/FirebaseTasksRepositoryImpl';
 import { useTasksStore } from '../../shared/stores/tasksStore';
 import { useAuthStore } from '../../shared/stores/authStore';
 import { Task } from '../../domain/entities/Task';
@@ -28,7 +29,7 @@ export const useTasks = () => {
   const setLoading = useTasksStore((state) => state.setLoading);
   const setError = useTasksStore((state) => state.setError);
 
-  const tasksService = useRef(new TasksService()).current;
+  const tasksService = useRef(new TasksService(new FirebaseTasksRepositoryImpl())).current;
 
   const loadTasks = useCallback(async () => {
     if (!user) return;

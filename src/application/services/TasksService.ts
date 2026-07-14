@@ -1,11 +1,11 @@
-import { FirebaseTasksRepositoryImpl } from '../../infrastructure/repositories/FirebaseTasksRepositoryImpl';
 import { Task } from '../../domain/entities/Task';
+import { ITasksRepository } from '../../domain/repositories/ITasksRepository';
 
 export class TasksService {
-  private tasksRepository: FirebaseTasksRepositoryImpl;
+  private tasksRepository: ITasksRepository;
 
-  constructor() {
-    this.tasksRepository = new FirebaseTasksRepositoryImpl();
+  constructor(tasksRepository: ITasksRepository) {
+    this.tasksRepository = tasksRepository;
   }
 
   async getTasks(userId: string): Promise<Task[]> {
