@@ -1,11 +1,11 @@
-import { FirebaseSettingsRepository } from '../../infrastructure/repositories/FirebaseSettingsRepository';
 import { Settings } from '../../domain/entities/Settings';
+import { ISettingsRepository } from '../../domain/repositories/ISettingsRepository';
 
 export class SettingsService {
-  private settingsRepository: FirebaseSettingsRepository;
+  private settingsRepository: ISettingsRepository;
 
-  constructor() {
-    this.settingsRepository = new FirebaseSettingsRepository();
+  constructor(settingsRepository: ISettingsRepository) {
+    this.settingsRepository = settingsRepository;
   }
 
   async getSettings(userId: string): Promise<Settings> {
@@ -13,7 +13,7 @@ export class SettingsService {
   }
 
   async updateSettings(settings: Settings): Promise<void> {
-    return this.settingsRepository.updateSettings(settings);
+    await this.settingsRepository.updateSettings(settings);
   }
 
   async createDefaultSettings(userId: string): Promise<Settings> {

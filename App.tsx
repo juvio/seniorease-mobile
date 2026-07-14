@@ -1,49 +1,54 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { RootNavigator } from './presentation/navigation/RootNavigator';
-import { useAuthStore } from './shared/stores/authStore';
-import { useSettingsStore } from './shared/stores/settingsStore';
-import { AuthService } from './application/services/AuthService';
-import { SettingsService } from './application/services/SettingsService';
-import { colors } from './shared/constants/theme';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { RootNavigator } from './src/presentation/navigation/RootNavigator';
+import { useAuthStore } from './src/shared/stores/authStore';
+import { useSettingsStore } from './src/shared/stores/settingsStore';
+import { appContainer } from './src/application/container';
+import { auth, db } from './src/infrastructure/firebase/config';
+import { colors } from './src/shared/constants/theme';
 
 export default function App() {
-  const { user, setUser, setLoading: setAuthLoading } = useAuthStore();
-  const { setSettings, setLoading: setSettingsLoading } = useSettingsStore();
+  const { user, setUser } = useAuthStore();
+  const { setSettings } = useSettingsStore();
   const [appLoading, setAppLoading] = useState(true);
 
   useEffect(() => {
-    initializeApp();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        if (firebaseUser) {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          const userData = userDoc.data();
 
-  const initializeApp = async () => {
-    try {
-      setAuthLoading(true);
-      setSettingsLoading(true);
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: userData?.displayName ?? 'Usuário',
+            createdAt: userData?.createdAt?.toDate() ?? new Date(),
+            updatedAt: userData?.updatedAt?.toDate() ?? new Date(),
+          });
 
-      const authService = new AuthService();
-      const currentUser = await authService.getCurrentUser();
-
-      if (currentUser) {
-        setUser(currentUser);
-
-        // Load user settings
-        const settingsService = new SettingsService();
-        try {
-          const settings = await settingsService.getSettings(currentUser.id);
-          setSettings(settings);
-        } catch (error) {
-          console.log('Settings not found, will create defaults on next login');
+          const { settingsService } = appContainer;
+          try {
+            const settings = await settingsService.getSettings(firebaseUser.uid);
+            setSettings(settings);
+          } catch {
+            // Defaults can be created after login if no settings were found.
+          }
+        } else {
+          setUser(null);
         }
+      } catch (error) {
+        console.error('Error restoring auth state:', error);
+      } finally {
+        setAppLoading(false);
       }
-    } catch (error) {
-      console.error('Error initializing app:', error);
-    } finally {
-      setAuthLoading(false);
-      setSettingsLoading(false);
-      setAppLoading(false);
-    }
-  };
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   if (appLoading) {
     return (
@@ -53,5 +58,9 @@ export default function App() {
     );
   }
 
-  return <RootNavigator isLoggedIn={!!user} />;
+  return (
+    <SafeAreaProvider>
+      <RootNavigator isLoggedIn={!!user} />
+    </SafeAreaProvider>
+  );
 }

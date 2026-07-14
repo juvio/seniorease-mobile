@@ -1,6 +1,6 @@
-import { IAuthRepository } from '../../repositories/IAuthRepository';
-import { User } from '../../entities/User';
-import { validateEmail, validatePassword } from '../../../shared/utils/validators';
+import { IAuthRepository } from '../repositories/IAuthRepository';
+import { User } from '../entities/User';
+import { validateEmail } from '../../shared/utils/validators';
 
 export class LoginUseCase {
   constructor(private authRepository: IAuthRepository) {}
@@ -10,8 +10,8 @@ export class LoginUseCase {
       throw new Error('Email inválido');
     }
 
-    if (!validatePassword(password)) {
-      throw new Error('Senha deve ter pelo menos 6 caracteres');
+    if (!password.trim()) {
+      throw new Error('Senha e obrigatoria');
     }
 
     return this.authRepository.login(email, password);

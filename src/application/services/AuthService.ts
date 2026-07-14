@@ -1,15 +1,15 @@
-import { FirebaseAuthRepository } from '../../infrastructure/repositories/FirebaseAuthRepository';
 import { SignupUseCase } from '../../domain/usecases/SignupUseCase';
 import { LoginUseCase } from '../../domain/usecases/LoginUseCase';
 import { User } from '../../domain/entities/User';
+import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 
 export class AuthService {
-  private authRepository: FirebaseAuthRepository;
+  private authRepository: IAuthRepository;
   private signupUseCase: SignupUseCase;
   private loginUseCase: LoginUseCase;
 
-  constructor() {
-    this.authRepository = new FirebaseAuthRepository();
+  constructor(authRepository: IAuthRepository) {
+    this.authRepository = authRepository;
     this.signupUseCase = new SignupUseCase(this.authRepository);
     this.loginUseCase = new LoginUseCase(this.authRepository);
   }
@@ -23,7 +23,7 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    return this.authRepository.logout();
+    await this.authRepository.logout();
   }
 
   async getCurrentUser(): Promise<User | null> {

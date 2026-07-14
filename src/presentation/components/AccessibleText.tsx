@@ -50,7 +50,7 @@ export const AccessibleText: React.FC<AccessibleTextProps> = ({
     <RNText
       {...props}
       style={[{ fontSize: finalSize }, style]}
-      allowFontScaling={false}
+      allowFontScaling
     />
   );
 };

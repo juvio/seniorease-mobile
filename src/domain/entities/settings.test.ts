@@ -1,4 +1,4 @@
-import { AccessibilitySettings, Settings } from '../domain/entities/Settings';
+import { AccessibilitySettings, Settings } from './Settings';
 
 describe('Settings Model', () => {
   describe('Accessibility Settings', () => {

@@ -1,66 +1,76 @@
 import { useCallback } from 'react';
-import { SettingsService } from '../../application/services/SettingsService';
+import { appContainer } from '../../application/container';
 import { useSettingsStore } from '../../shared/stores/settingsStore';
 import { useAuthStore } from '../../shared/stores/authStore';
 import { Settings } from '../../domain/entities/Settings';
 
 export const useSettings = () => {
-  const settingsStore = useSettingsStore();
-  const authStore = useAuthStore();
-  const settingsService = new SettingsService();
+  const user = useAuthStore((state) => state.user);
+
+  const settings = useSettingsStore((state) => state.settings);
+  const loading = useSettingsStore((state) => state.loading);
+  const error = useSettingsStore((state) => state.error);
+  const setSettings = useSettingsStore((state) => state.setSettings);
+  const updateAccessibilitySettings = useSettingsStore(
+    (state) => state.updateAccessibilitySettings,
+  );
+  const setLoading = useSettingsStore((state) => state.setLoading);
+  const setError = useSettingsStore((state) => state.setError);
+
+  const { settingsService } = appContainer;
 
   const loadSettings = useCallback(async () => {
-    if (!authStore.user) return;
+    if (!user) return;
 
     try {
-      settingsStore.setLoading(true);
-      settingsStore.setError(null);
+      setLoading(true);
+      setError(null);
 
-      const settings = await settingsService.getSettings(authStore.user.id);
-      settingsStore.setSettings(settings);
+      const loadedSettings = await settingsService.getSettings(user.id);
+      setSettings(loadedSettings);
     } catch (error: any) {
       const errorMessage = error?.message || 'Erro ao carregar configurações';
-      settingsStore.setError(errorMessage);
+      setError(errorMessage);
     } finally {
-      settingsStore.setLoading(false);
+      setLoading(false);
     }
-  }, [authStore.user, settingsStore]);
+  }, [user, setLoading, setError, settingsService, setSettings]);
 
   const updateSettings = useCallback(
     async (updates: Partial<Settings['accessibility']>) => {
-      if (!settingsStore.settings) return;
+      if (!settings) return;
 
       try {
-        settingsStore.setLoading(true);
-        settingsStore.setError(null);
+        setLoading(true);
+        setError(null);
 
         const updated = {
-          ...settingsStore.settings,
+          ...settings,
           accessibility: {
-            ...settingsStore.settings.accessibility,
+            ...settings.accessibility,
             ...updates,
           },
           updatedAt: new Date(),
         };
 
         await settingsService.updateSettings(updated);
-        settingsStore.setSettings(updated);
+        setSettings(updated);
       } catch (error: any) {
         const errorMessage = error?.message || 'Erro ao salvar configurações';
-        settingsStore.setError(errorMessage);
+        setError(errorMessage);
       } finally {
-        settingsStore.setLoading(false);
+        setLoading(false);
       }
     },
-    [settingsStore]
+    [settings, setLoading, setError, settingsService, setSettings]
   );
 
   return {
-    settings: settingsStore.settings,
-    loading: settingsStore.loading,
-    error: settingsStore.error,
+    settings,
+    loading,
+    error,
     loadSettings,
     updateSettings,
-    updateAccessibilitySettings: settingsStore.updateAccessibilitySettings,
+    updateAccessibilitySettings,
   };
 };

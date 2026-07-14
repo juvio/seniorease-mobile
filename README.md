@@ -1,277 +1,220 @@
 # SeniorEase Mobile
 
-Um aplicativo React Native com foco em acessibilidade para idosos, com Clean Architecture e boas práticas de desenvolvimento.
+Aplicativo mobile acadêmico para apoio à rotina de idosos, com foco em acessibilidade digital, organização de tarefas e arquitetura limpa.
 
-## 🎯 Características Principais
+## Funcionalidades Principais
 
-### 1. Painel de Personalização da Experiência
-- Ajuste de tamanho de fonte (4 níveis)
-- Contraste customizável (normal, alto, máximo)
-- Espaçamento entre elementos
+1. Personalização da experiência
+
+- Tamanho de fonte
+- Contraste
+- Espaçamento
 - Modo simplificado/avançado
-- Feedback visual reforçado
+- Feedback reforçado
 - Confirmação de ações críticas
 
-### 2. Organizador de Atividades
-- Lista de tarefas simples e clara
-- Etapas guiadas para execução
-- Lembretes com linguagem clara
-- Feedback de conclusão
-- Histórico de atividades
+2. Organizador de tarefas
 
-### 3. Perfil + Configurações Persistentes
-- Gerenciamento de perfil do usuário
-- Armazenamento em Firestore
-- Sincronização automática de preferências
+- Cadastro e edição de tarefas
+- Conclusão e exclusão
+- Histórico por status
+- Recorrência semanal
 
-## 🏗️ Arquitetura
+3. Autenticação e persistência
 
-O projeto segue **Clean Architecture** com separação clara de camadas:
+- Login e cadastro com Firebase Auth
+- Configurações e tarefas persistidas no Firestore
 
-```
+## Arquitetura
+
+O projeto segue uma variação de Clean Architecture com composição central de dependências.
+
+```text
 src/
-├── domain/              # Lógica de negócio pura
-│   ├── entities/       # Modelos de dados
-│   ├── repositories/   # Interfaces de repositório
-│   └── usecases/       # Casos de uso
-├── application/        # Lógica de aplicação
-│   ├── services/       # Serviços que coordenam repositories e usecases
-│   └── dto/            # Data Transfer Objects
-├── infrastructure/     # Implementações externas
-│   ├── firebase/       # Configuração Firebase
-│   ├── database/       # Operações de banco
-│   └── repositories/   # Implementações das interfaces
-├── presentation/       # UI e componentes
-│   ├── screens/        # Telas principais
-│   ├── components/     # Componentes reutilizáveis
-│   ├── hooks/          # Custom hooks
-│   ├── navigation/     # Configuração de navegação
-│   └── styles/         # Temas e estilos globais
-└── shared/             # Código compartilhado
-    ├── stores/         # Zustand stores (state management)
-    ├── utils/          # Funções utilitárias
-    └── constants/      # Constantes globais
+├── domain/                # Regras de negócio puras
+│   ├── entities/
+│   ├── repositories/      # Contratos (interfaces)
+│   ├── usecases/
+│   └── factories/
+├── application/
+│   ├── services/          # Orquestração de casos de uso e repositórios
+│   └── container.ts       # Composition root (appContainer)
+├── infrastructure/
+│   ├── firebase/
+│   └── repositories/      # Implementações concretas
+├── presentation/
+│   ├── screens/           # Screen orquestra
+│   ├── hooks/             # Lógica da interface
+│   ├── components/        # Views/componentes reutilizáveis
+│   └── navigation/
+└── shared/
+    ├── stores/
+    ├── utils/
+    └── constants/
 ```
 
-## 🚀 Tecnologias
+Padrão adotado na interface:
 
-- **Framework**: React Native + Expo
-- **State Management**: Zustand
-- **Navegação**: React Navigation
-- **Backend**: Firebase (Auth + Firestore)
-- **Testes**: Jest + React Testing Library
-- **Linguagem**: TypeScript
+- Screen: apenas orquestra
+- Hook: lógica de estado/ações
+- View/Component: renderização e acessibilidade
 
-## 📋 Pré-requisitos
+## Tecnologias
 
-- Node.js >= 18
-- npm ou yarn
-- Expo CLI: `npm install -g expo-cli`
+- React Native + Expo
+- TypeScript
+- Firebase (Auth e Firestore)
+- React Navigation
+- Zustand
+- Jest + Testing Library
+- ESLint
 
-## 🔧 Configuração Inicial
+## Passo a Passo para Rodar o Projeto
 
-### 1. Instalar Dependências
+## 1. Pré-requisitos
+
+Instale:
+
+1. Node.js 18+
+2. npm 9+
+3. Git
+4. Android Studio (para Android emulador) e/ou Xcode (para iOS no macOS)
+
+Opcional:
+
+1. Expo Go no celular
+
+## 2. Clonar o repositório
+
+```bash
+git clone https://github.com/juvio/seniorease-mobile
+cd seniorease-mobile
+```
+
+## 3. Instalar dependências
+
 ```bash
 npm install
 ```
 
-### 2. Configurar Firebase
-As credenciais do Firebase já estão em:
-```
-src/infrastructure/firebase/config.ts
+## 4. Configurar Firebase
+
+O projeto usa variáveis `EXPO_PUBLIC_*` no arquivo de configuração.
+
+Crie um arquivo `.env` na raiz (opcional, mas recomendado) com:
+
+```bash
+EXPO_PUBLIC_FIREBASE_API_KEY=...
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+EXPO_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-### 3. Rodar em Desenvolvimento
+Referência de configuração: `src/infrastructure/firebase/config.ts`.
+
+## 5. Executar o app
+
+Inicie o Metro/Expo:
+
 ```bash
 npm start
 ```
 
-Isso abrirá o Expo CLI. Você pode:
-- Pressionar `w` para abrir no web browser
-- Pressionar `a` para abrir no Android Emulator
-- Pressionar `i` para abrir no iOS Simulator
+Depois escolha um alvo:
 
-## 🧪 Testes
+1. Web:
 
 ```bash
-# Rodar todos os testes
-npm test
+npm run web
+```
 
-# Rodar testes em modo watch
-npm test -- --watch
+2. Android:
 
-# Cobertura de testes
+```bash
+npm run android
+```
+
+3. iOS (apenas macOS):
+
+```bash
+npm run ios
+```
+
+## 6. Validar qualidade (obrigatório em contexto acadêmico)
+
+1. Lint:
+
+```bash
+npm run lint
+```
+
+2. Type-check:
+
+```bash
+npm run type-check
+```
+
+3. Testes:
+
+```bash
+npm test -- --runInBand
+```
+
+4. Cobertura:
+
+```bash
 npm test -- --coverage
 ```
 
-## 📱 Estrutura de Navegação
+## 7. Fluxo recomendado de avaliação
 
-```
-Home (Root Navigator)
-├── Auth Screen (não autenticado)
-└── App Tabs (autenticado)
-    ├── Home → Tasks Screen
-    ├── Personalization Screen
-    └── Profile Screen
-```
+Para banca/professor, execute nesta ordem:
 
-## 🎨 Design System
+1. `npm install`
+2. `npm run lint`
+3. `npm run type-check`
+4. `npm test -- --runInBand`
+5. `npm start` e demonstrar fluxos principais do app
 
-### Tamanhos de Fonte
-- `small`: 12px
-- `medium`: 16px
-- `large`: 20px
-- `extra-large`: 24px
+## Navegação Atual
 
-### Espaçamento
-- `compact`: 4px
-- `normal`: 8px
-- `spacious`: 12px
-- `extra-spacious`: 16px
-
-### Cores Padrão
-- Primary: #007AFF (Azul)
-- Success: #34C759 (Verde)
-- Error: #FF3B30 (Vermelho)
-- Warning: #FF9500 (Laranja)
-
-## 🔒 Segurança Firebase
-
-### Regras de Firestore (Modo Teste)
-```javascript
-match /users/{userId} {
-  allow read, write: if request.auth != null && request.auth.uid == userId;
-}
-match /users/{userId}/tasks/{taskId} {
-  allow read, write: if request.auth != null && request.auth.uid == userId;
-}
-match /users/{userId}/settings/{settingId} {
-  allow read, write: if request.auth != null && request.auth.uid == userId;
-}
+```text
+Root Navigator
+├── Auth (não autenticado)
+└── App (autenticado)
+    ├── Home (Tasks)
+    └── Configurações (Personalization)
 ```
 
-**Nota**: Essas regras são apenas para testes. Para produção, ajuste conforme necessário.
+## Acessibilidade Implementada
 
-## 📦 State Management (Zustand)
+- Escala de tipografia baseada em preferências
+- Contraste ajustável
+- Espaçamento ajustável
+- Labels e roles de acessibilidade em controles interativos
+- Feedback visual reforçado
+- Confirmação de ações críticas (quando habilitada)
 
-O projeto usa Zustand para gerenciar estado global:
+## Testes
 
-### Auth Store
-```typescript
-useAuthStore()
-- user: User | null
-- setUser()
-- logout()
+Cobertura por camadas:
+
+1. Domain (entidades, fábricas, use cases)
+2. Infrastructure (repositórios)
+3. Presentation hooks
+4. Componentes críticos de acessibilidade
+5. Stores e utilitários
+
+## Estrutura de Scripts
+
+```bash
+npm start          # Expo dev server
+npm run web        # Execução web
+npm run android    # Build/run Android
+npm run ios        # Build/run iOS
+npm run lint       # ESLint
+npm run type-check # TypeScript sem emissão
+npm test           # Jest
 ```
-
-### Settings Store
-```typescript
-useSettingsStore()
-- settings: Settings | null
-- updateAccessibilitySettings()
-```
-
-### Tasks Store
-```typescript
-useTasksStore()
-- tasks: Task[]
-- addTask()
-- updateTask()
-- deleteTask()
-```
-
-## 🔐 Autenticação
-
-Implementada com Firebase Authentication (Email/Senha):
-
-1. **Signup**: Cria usuário + perfil em Firestore
-2. **Login**: Autentica e carrega configurações
-3. **Logout**: Limpa estado local
-4. **Persistent Login**: Verifica usuário atual ao iniciar app
-
-## 💾 Modelo de Dados
-
-### User
-```typescript
-{
-  id: string;
-  email: string;
-  displayName: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Settings
-```typescript
-{
-  userId: string;
-  accessibility: {
-    fontSize: 'small' | 'medium' | 'large' | 'extra-large';
-    contrast: 'normal' | 'high' | 'maximum';
-    spacing: 'compact' | 'normal' | 'spacious' | 'extra-spacious';
-    interfaceMode: 'basic' | 'advanced';
-    reinforcedFeedback: boolean;
-    confirmCriticalActions: boolean;
-  };
-  notifications: {
-    enableReminders: boolean;
-    reminderTime: string; // HH:mm
-    enableTaskCompletion: boolean;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Task
-```typescript
-{
-  id: string;
-  userId: string;
-  title: string;
-  description: string;
-  steps: TaskStep[];
-  completed: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  completedAt?: Date;
-  dueDate?: Date;
-  reminderTime?: string;
-}
-```
-
-## 📝 Próximos Passos
-
-- [ ] Implementar autenticação Firebase real
-- [ ] Persistência local com AsyncStorage
-- [ ] Notificações push
-- [ ] Integração com Figma para design final
-- [ ] Testes E2E com Detox
-- [ ] CI/CD Pipeline (opcional)
-- [ ] Animações acessíveis
-- [ ] Múltiplos idiomas
-
-## 👥 Contribuição
-
-As contribuições são bem-vindas! Por favor:
-
-1. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-2. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-3. Push para a branch (`git push origin feature/AmazingFeature`)
-4. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT.
-
-## 📞 Suporte
-
-Para dúvidas ou problemas:
-1. Abra uma issue no repositório
-2. Consulte a documentação do Firebase
-3. Verifique a documentação do React Native
-
----
-
-**Última atualização**: 2026-06-08
