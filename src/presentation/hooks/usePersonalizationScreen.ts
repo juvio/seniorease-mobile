@@ -53,7 +53,7 @@ export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookPa
       await updateSettings(settings.accessibility);
       setToast({ visible: true, type: 'success', message: 'Configuracoes salvas!' });
       onSave?.();
-    } catch (error) {
+    } catch {
       setToast({ visible: true, type: 'error', message: 'Nao foi possivel salvar as configuracoes' });
     }
   }, [onSave, settings, updateSettings]);
@@ -91,7 +91,7 @@ export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookPa
           onPress: async () => {
             try {
               await logout();
-            } catch (_error) {
+            } catch {
               showAppAlert({ title: 'Erro', message: 'Nao foi possivel fazer logout' });
             }
           },

@@ -2,7 +2,7 @@ import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
 import {
   Auth,
   getAuth,
-  // @ts-ignore - available at runtime in React Native builds
+  // @ts-expect-error - available at runtime in React Native builds
   getReactNativePersistence,
   initializeAuth,
 } from 'firebase/auth';
