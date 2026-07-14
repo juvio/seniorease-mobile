@@ -1,6 +1,5 @@
-import { useCallback, useRef } from 'react';
-import { SettingsService } from '../../application/services/SettingsService';
-import { FirebaseSettingsRepository } from '../../infrastructure/repositories/FirebaseSettingsRepository';
+import { useCallback } from 'react';
+import { appContainer } from '../../application/container';
 import { useSettingsStore } from '../../shared/stores/settingsStore';
 import { useAuthStore } from '../../shared/stores/authStore';
 import { Settings } from '../../domain/entities/Settings';
@@ -18,7 +17,7 @@ export const useSettings = () => {
   const setLoading = useSettingsStore((state) => state.setLoading);
   const setError = useSettingsStore((state) => state.setError);
 
-  const settingsService = useRef(new SettingsService(new FirebaseSettingsRepository())).current;
+  const { settingsService } = appContainer;
 
   const loadSettings = useCallback(async () => {
     if (!user) return;

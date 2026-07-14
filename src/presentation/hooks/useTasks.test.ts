@@ -8,13 +8,15 @@ const mockCreateTask = jest.fn();
 const mockUpdateTask = jest.fn();
 const mockDeleteTask = jest.fn();
 
-jest.mock('../../application/services/TasksService', () => ({
-  TasksService: jest.fn().mockImplementation(() => ({
-    getTasks: mockGetTasks,
-    createTask: mockCreateTask,
-    updateTask: mockUpdateTask,
-    deleteTask: mockDeleteTask,
-  })),
+jest.mock('../../application/container', () => ({
+  appContainer: {
+    tasksService: {
+      getTasks: (...args: unknown[]) => mockGetTasks(...args),
+      createTask: (...args: unknown[]) => mockCreateTask(...args),
+      updateTask: (...args: unknown[]) => mockUpdateTask(...args),
+      deleteTask: (...args: unknown[]) => mockDeleteTask(...args),
+    },
+  },
 }));
 
 describe('useTasks', () => {

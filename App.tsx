@@ -6,8 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { RootNavigator } from './src/presentation/navigation/RootNavigator';
 import { useAuthStore } from './src/shared/stores/authStore';
 import { useSettingsStore } from './src/shared/stores/settingsStore';
-import { SettingsService } from './src/application/services/SettingsService';
-import { FirebaseSettingsRepository } from './src/infrastructure/repositories/FirebaseSettingsRepository';
+import { appContainer } from './src/application/container';
 import { auth, db } from './src/infrastructure/firebase/config';
 import { colors } from './src/shared/constants/theme';
 
@@ -31,7 +30,7 @@ export default function App() {
             updatedAt: userData?.updatedAt?.toDate() ?? new Date(),
           });
 
-          const settingsService = new SettingsService(new FirebaseSettingsRepository());
+          const { settingsService } = appContainer;
           try {
             const settings = await settingsService.getSettings(firebaseUser.uid);
             setSettings(settings);

@@ -6,11 +6,13 @@ import { useSettingsStore } from '../../shared/stores/settingsStore';
 const mockGetSettings = jest.fn();
 const mockUpdateSettings = jest.fn();
 
-jest.mock('../../application/services/SettingsService', () => ({
-  SettingsService: jest.fn().mockImplementation(() => ({
-    getSettings: mockGetSettings,
-    updateSettings: mockUpdateSettings,
-  })),
+jest.mock('../../application/container', () => ({
+  appContainer: {
+    settingsService: {
+      getSettings: (...args: unknown[]) => mockGetSettings(...args),
+      updateSettings: (...args: unknown[]) => mockUpdateSettings(...args),
+    },
+  },
 }));
 
 const buildSettings = () => ({
