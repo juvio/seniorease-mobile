@@ -112,6 +112,8 @@ export const AppAlertModal: React.FC = () => {
                 <Pressable
                   key={`${action.text}-${index}`}
                   onPress={() => handleActionPress(action)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Acao do alerta: ${action.text}`}
                   style={[
                     styles.actionButton,
                     {
