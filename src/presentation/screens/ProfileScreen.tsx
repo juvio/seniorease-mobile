@@ -2,12 +2,8 @@ import React from 'react';
 import { ProfileView } from '../components/profile/ProfileView';
 import { useProfileScreen } from '../hooks/useProfileScreen';
 
-interface ProfileScreenProps {
-  onLogout?: () => void;
-}
-
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout }) => {
-  const screenState = useProfileScreen({ onLogout });
+export const ProfileScreen: React.FC = () => {
+  const screenState = useProfileScreen();
 
   return <ProfileView {...screenState} />;
 };

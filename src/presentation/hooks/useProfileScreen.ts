@@ -2,16 +2,11 @@ import { useCallback, useMemo } from 'react';
 import { showAppAlert } from '../../shared/stores/alertStore';
 import { useAuth } from './useAuth';
 
-interface ProfileScreenHookParams {
-  onLogout?: () => void;
-}
-
 interface ProfileActionItem {
   id: string;
   title: string;
   subtitle: string;
   actionLabel: string;
-  tone?: 'default' | 'danger';
   onPress: () => void;
 }
 
@@ -22,30 +17,8 @@ const formatJoinDate = (value: Date | string | undefined) => {
   return date.toLocaleDateString('pt-BR');
 };
 
-export const useProfileScreen = ({ onLogout }: ProfileScreenHookParams) => {
-  const { user, loading, logout } = useAuth();
-
-  const handleLogout = useCallback(() => {
-    showAppAlert({
-      title: 'Sair da conta',
-      message: 'Tem certeza que deseja sair?',
-      actions: [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-              onLogout?.();
-            } catch (error) {
-              showAppAlert({ title: 'Erro', message: 'Nao foi possivel fazer logout' });
-            }
-          },
-        },
-      ],
-    });
-  }, [logout, onLogout]);
+export const useProfileScreen = () => {
+  const { user, loading } = useAuth();
 
   const handlePlaceholderAction = useCallback((label: string) => {
     showAppAlert({
@@ -77,16 +50,8 @@ export const useProfileScreen = ({ onLogout }: ProfileScreenHookParams) => {
         actionLabel: 'Abrir',
         onPress: () => handlePlaceholderAction('Abrir ajuda'),
       },
-      {
-        id: 'logout',
-        title: 'Encerrar sessao',
-        subtitle: 'Sair da conta neste dispositivo',
-        actionLabel: 'Sair',
-        tone: 'danger',
-        onPress: handleLogout,
-      },
     ],
-    [handleLogout, handlePlaceholderAction]
+    [handlePlaceholderAction]
   );
 
   return {

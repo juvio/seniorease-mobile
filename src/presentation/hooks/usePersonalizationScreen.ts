@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AccessibilitySettings } from '../../domain/entities/Settings';
 import { useSettings } from './useSettings';
 import { useAuth } from './useAuth';
+import { showAppAlert } from '../../shared/stores/alertStore';
 
 interface PersonalizationScreenHookParams {
   onSave?: () => void;
@@ -34,7 +35,7 @@ const spacingOptions: Option<AccessibilitySettings['spacing']>[] = [
 
 export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookParams) => {
   const { settings, loading, loadSettings, updateSettings, updateAccessibilitySettings } = useSettings();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [toast, setToast] = useState<{
     visible: boolean;
     type: 'success' | 'warning' | 'error';
@@ -78,6 +79,27 @@ export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookPa
     [updateAccessibilitySettings]
   );
 
+  const handleLogout = useCallback(() => {
+    showAppAlert({
+      title: 'Sair da conta',
+      message: 'Tem certeza que deseja sair?',
+      actions: [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (_error) {
+              showAppAlert({ title: 'Erro', message: 'Nao foi possivel fazer logout' });
+            }
+          },
+        },
+      ],
+    });
+  }, [logout]);
+
   return {
     isLoading: loading || !settings,
     displayName: user?.displayName || '',
@@ -101,6 +123,7 @@ export const usePersonalizationScreen = ({ onSave }: PersonalizationScreenHookPa
     onInterfaceModeToggle: handleInterfaceModeToggle,
     onReinforcedFeedbackToggle: handleReinforcedFeedbackToggle,
     onConfirmCriticalActionsToggle: handleConfirmCriticalActionsToggle,
+    onLogoutPress: handleLogout,
     onSave: handleSaveSettings,
   };
 };

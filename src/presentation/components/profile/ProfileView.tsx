@@ -13,7 +13,6 @@ interface ProfileActionItem {
   title: string;
   subtitle: string;
   actionLabel: string;
-  tone?: 'default' | 'danger';
   onPress: () => void;
 }
 
@@ -84,7 +83,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               title={action.title}
               subtitle={action.subtitle}
               actionLabel={action.actionLabel}
-              tone={action.tone}
               onPress={action.onPress}
             />
           ))}

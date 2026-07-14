@@ -39,6 +39,7 @@ interface PersonalizationViewProps {
   onInterfaceModeToggle: (value: boolean) => void;
   onReinforcedFeedbackToggle: (value: boolean) => void;
   onConfirmCriticalActionsToggle: (value: boolean) => void;
+  onLogoutPress: () => void;
   onSave: () => void;
 }
 
@@ -60,6 +61,7 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
   onInterfaceModeToggle,
   onReinforcedFeedbackToggle,
   onConfirmCriticalActionsToggle,
+  onLogoutPress,
   onSave,
 }) => {
   const { scaleFont, scaleSpacing, ui } = useAccessibilityTheme();
@@ -94,15 +96,35 @@ export const PersonalizationView: React.FC<PersonalizationViewProps> = ({
         autoHideMs={3200}
       />
 
-      <View style={[styles.profileCard, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious), marginBottom: scaleSpacing(spacing.spacious) }]}>
-        <View style={[styles.avatar, { backgroundColor: ui.chipSelectedBackground, marginRight: scaleSpacing(spacing.normal) }]}>
-          <Text style={[styles.avatarText, { fontSize: scaleFont(fontSizes.large + 4) }]}>{initial}</Text>
+      <View style={[styles.profileHeader, { marginBottom: scaleSpacing(spacing.spacious), gap: scaleSpacing(spacing.normal) }]}>
+        <View style={[styles.profileCard, { backgroundColor: ui.cardBackground, borderColor: ui.cardBorder, padding: scaleSpacing(spacing.spacious) }]}>
+          <View style={[styles.avatar, { backgroundColor: ui.chipSelectedBackground, marginRight: scaleSpacing(spacing.normal) }]}>
+            <Text style={[styles.avatarText, { fontSize: scaleFont(fontSizes.large + 4) }]}>{initial}</Text>
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={[styles.profileName, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary }]}>{displayName}</Text>
+            <Text style={[styles.profileEmail, { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary }]}>{email}</Text>
+            <Text style={[styles.profileMemberSince, { fontSize: scaleFont(fontSizes.small), color: ui.textSecondary }]}>Membro desde: {memberSince}</Text>
+          </View>
         </View>
-        <View style={styles.profileInfo}>
-          <Text style={[styles.profileName, { fontSize: scaleFont(fontSizes.medium), color: ui.textPrimary }]}>{displayName}</Text>
-          <Text style={[styles.profileEmail, { fontSize: scaleFont(fontSizes.small + 1), color: ui.textSecondary }]}>{email}</Text>
-          <Text style={[styles.profileMemberSince, { fontSize: scaleFont(fontSizes.small), color: ui.textSecondary }]}>Membro desde: {memberSince}</Text>
-        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.logoutButton,
+            {
+              backgroundColor: ui.cardBackground,
+              borderColor: ui.cardBorder,
+              paddingHorizontal: scaleSpacing(spacing.normal),
+              minHeight: scaleSpacing(spacing.spacious) + 6,
+            },
+          ]}
+          onPress={onLogoutPress}
+          activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="Sair da conta"
+        >
+          <Text style={[styles.logoutButtonText, { color: ui.textSecondary, fontSize: scaleFont(fontSizes.small) }]}>Sair</Text>
+        </TouchableOpacity>
       </View>
 
       <Text style={[styles.title, { fontSize: scaleFont(fontSizes.extraLarge + 2), color: ui.textPrimary, marginBottom: scaleSpacing(spacing.normal) }]}>
@@ -347,6 +369,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
   },
   avatar: {
     width: 56,
@@ -370,5 +397,16 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   profileMemberSince: {
+  },
+  logoutButton: {
+    borderRadius: 14,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 74,
+    alignSelf: 'stretch',
+  },
+  logoutButtonText: {
+    fontWeight: '600',
   },
 });
